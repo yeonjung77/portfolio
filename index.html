@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ML/AI Engineer Portfolio - Computer Vision & Deep Learning Projects">
+    <title>ML/AI Portfolio</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="#hero" class="nav-logo">Portfolio</a>
+        <div class="nav-links">
+            <a href="#about">About</a>
+            <a href="#projects">Projects</a>
+            <a href="#skills">Skills</a>
+            <a href="#contact">Contact</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<header id="hero" class="hero">
+    <h1>Your Name</h1>
+    <p class="hero-tagline">ML/AI Engineer &mdash; Computer Vision & Deep Learning</p>
+    <div class="hero-links">
+        <a href="https://github.com/" target="_blank">GitHub</a>
+        <a href="https://linkedin.com/" target="_blank">LinkedIn</a>
+        <a href="mailto:your@email.com">Email</a>
+    </div>
+</header>
+
+<!-- About -->
+<section id="about" class="section">
+    <h2>About</h2>
+    <p>
+        ML/AI engineer focused on computer vision and deep learning.
+        Building end-to-end pipelines from data analysis to model deployment.
+    </p>
+    <div class="tag-group">
+        <span class="tag">Python</span>
+        <span class="tag">PyTorch</span>
+        <span class="tag">Computer Vision</span>
+        <span class="tag">Deep Learning</span>
+        <span class="tag">Transfer Learning</span>
+    </div>
+</section>
+
+<!-- Projects -->
+<section id="projects" class="section">
+    <h2>Projects</h2>
+
+    <!-- Project Roadmap -->
+    <div class="roadmap">
+        <div class="roadmap-item completed">P1</div>
+        <div class="roadmap-item upcoming">P2</div>
+        <div class="roadmap-item upcoming">P3</div>
+        <div class="roadmap-item upcoming">P4</div>
+        <div class="roadmap-item upcoming">P5</div>
+        <div class="roadmap-item upcoming">P6</div>
+        <div class="roadmap-item upcoming">P7</div>
+        <div class="roadmap-item upcoming">P8</div>
+    </div>
+
+    <!-- P1 Card -->
+    <article class="project-card" id="p1">
+        <div class="project-summary">
+            <span class="project-number">P1</span>
+            <h3>Fashion Product Image Classification</h3>
+            <p class="project-tagline">6-task multi-task classification on 44K fashion images comparing EfficientNet-B3 vs ViT-B/16</p>
+            <div class="project-metrics">
+                <span class="metric metric-green">Category Acc 99.5%</span>
+                <span class="metric metric-blue">Avg Attr F1 0.64</span>
+                <span class="metric metric-purple">6 Tasks</span>
+            </div>
+            <div class="tag-group">
+                <span class="tag">PyTorch</span>
+                <span class="tag">timm</span>
+                <span class="tag">EfficientNet-B3</span>
+                <span class="tag">ViT-B/16</span>
+                <span class="tag">Multi-task Learning</span>
+            </div>
+            <button class="project-toggle" onclick="toggleDetail('p1-detail')">View Details</button>
+        </div>
+
+        <div class="project-detail" id="p1-detail" hidden>
+
+            <div class="detail-section">
+                <h4>Problem</h4>
+                <p>Given a fashion product image, simultaneously predict 6 attributes: category (5 cls), subcategory (32 cls), article type (70 cls), color (47 cls), season (5 cls), and usage (8 cls). Key challenges include severe class imbalance (e.g., Black 6,774 vs Gold 30 images) and low image resolution (80x60).</p>
+            </div>
+
+            <div class="detail-section">
+                <h4>Approach</h4>
+                <ul>
+                    <li><strong>Architecture:</strong> Shared pretrained backbone + 6 independent classification heads</li>
+                    <li><strong>Multi-task Loss:</strong> Weighted sum &mdash; alpha(1.0) x category + beta(0.5) x mean(5 attribute losses)</li>
+                    <li><strong>Early Stopping:</strong> Based on avg_attr_f1 instead of category_acc, since category saturates at 99% early</li>
+                    <li><strong>Comparison:</strong> CNN (EfficientNet-B3) vs Transformer (ViT-B/16) under identical conditions</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h4>Results: EfficientNet-B3 vs ViT-B/16</h4>
+                <table class="result-table">
+                    <thead>
+                        <tr><th>Task</th><th>Metric</th><th>EfficientNet-B3</th><th>ViT-B/16</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Category (5)</td><td>Accuracy</td><td><strong>0.9954</strong></td><td>0.9952</td></tr>
+                        <tr><td>Category (5)</td><td>Macro F1</td><td>0.8173</td><td><strong>0.8191</strong></td></tr>
+                        <tr><td>SubCategory (32)</td><td>Macro F1</td><td><strong>0.8721</strong></td><td>0.8690</td></tr>
+                        <tr><td>ArticleType (70)</td><td>Macro F1</td><td><strong>0.8283</strong></td><td>0.8194</td></tr>
+                        <tr><td>Color (47)</td><td>Macro F1</td><td>0.3621</td><td><strong>0.3767</strong></td></tr>
+                        <tr><td>Season (5)</td><td>Macro F1</td><td>0.6332</td><td><strong>0.6415</strong></td></tr>
+                        <tr><td>Usage (8)</td><td>Macro F1</td><td>0.5087</td><td><strong>0.5282</strong></td></tr>
+                        <tr class="row-highlight"><td><strong>Avg Attr F1</strong></td><td></td><td>0.6409</td><td><strong>0.6469</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="detail-section">
+                <h4>Training Curves & Confusion Matrix</h4>
+                <div class="figure-grid">
+                    <figure>
+                        <img src="assets/img/p1/loss_curve.png" alt="Loss Curve">
+                        <figcaption>Train/Val Loss (30 epochs)</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="assets/img/p1/f1_curve.png" alt="F1 Curve">
+                        <figcaption>Val Attribute F1 Score</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="assets/img/p1/confusion_matrix.png" alt="Confusion Matrix">
+                        <figcaption>Category Confusion Matrix (Test)</figcaption>
+                    </figure>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h4>Key Insights</h4>
+                <ul>
+                    <li>CNN (EfficientNet) excels at fine-grained item classification (SubCategory, ArticleType) due to local pattern recognition</li>
+                    <li>Transformer (ViT) excels at global attribute prediction (Color, Season, Usage) due to global context modeling</li>
+                    <li>Changing early stopping criterion from category_acc to avg_attr_f1 improved attribute F1 from 0.52 to 0.66</li>
+                    <li>Selected EfficientNet-B3 as final model for deployment efficiency (12M vs 86M parameters)</li>
+                </ul>
+            </div>
+
+            <a href="https://github.com/" target="_blank" class="source-link">View Source Code</a>
+        </div>
+    </article>
+</section>
+
+<!-- Skills -->
+<section id="skills" class="section">
+    <h2>Skills</h2>
+    <div class="skills-grid">
+        <div class="skill-category">
+            <h4>Deep Learning</h4>
+            <div class="tag-group">
+                <span class="tag">PyTorch</span>
+                <span class="tag">timm</span>
+                <span class="tag">Transfer Learning</span>
+                <span class="tag">Multi-task Learning</span>
+            </div>
+        </div>
+        <div class="skill-category">
+            <h4>Models</h4>
+            <div class="tag-group">
+                <span class="tag">EfficientNet</span>
+                <span class="tag">ViT</span>
+            </div>
+        </div>
+        <div class="skill-category">
+            <h4>Data & Tools</h4>
+            <div class="tag-group">
+                <span class="tag">Python</span>
+                <span class="tag">pandas</span>
+                <span class="tag">scikit-learn</span>
+                <span class="tag">matplotlib</span>
+                <span class="tag">Git</span>
+                <span class="tag">Linux</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact -->
+<footer id="contact" class="footer">
+    <h2>Contact</h2>
+    <div class="hero-links">
+        <a href="https://github.com/" target="_blank">GitHub</a>
+        <a href="https://linkedin.com/" target="_blank">LinkedIn</a>
+        <a href="mailto:your@email.com">Email</a>
+    </div>
+    <p class="footer-note">Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
