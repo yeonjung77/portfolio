@@ -611,6 +611,6 @@ body {
 @media (max-width: 480px) {
     .hero h1 { font-size: 1.6rem; }
     .hero-tagline br { display: none; }
-    .hero-links { flex-direction: column; align-items: center; }
+    .hero-links a { padding: 7px 14px; font-size: 0.78rem; }
     .nav-links { display: none; }
 }
