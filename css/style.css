@@ -49,8 +49,7 @@ body {
 }
 
 .nav-logo {
-    font-family: 'Playfair Display', serif;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1rem;
     color: var(--primary);
     text-decoration: none;
@@ -62,7 +61,7 @@ body {
     text-decoration: none;
     color: var(--text-light);
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.5px;
     text-transform: uppercase;
     transition: color 0.3s;
@@ -80,8 +79,8 @@ body {
 }
 
 .hero-label {
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.85rem;
+    font-weight: 700;
     letter-spacing: 3px;
     text-transform: uppercase;
     color: var(--accent);
@@ -89,9 +88,8 @@ body {
 }
 
 .hero h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 3.2rem;
-    font-weight: 700;
+    font-size: 3rem;
+    font-weight: 800;
     color: var(--primary);
     margin-bottom: 16px;
     letter-spacing: -0.5px;
@@ -100,7 +98,7 @@ body {
 .hero-tagline {
     font-size: 1.05rem;
     color: var(--text-light);
-    font-weight: 300;
+    font-weight: 400;
     line-height: 1.8;
     margin-bottom: 32px;
 }
@@ -119,7 +117,7 @@ body {
     text-decoration: none;
     color: var(--text);
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.5px;
     transition: all 0.3s;
 }
@@ -140,24 +138,23 @@ body {
 .section-gray {
     background: var(--bg-gray);
     max-width: 100%;
+    padding: 80px 0;
 }
 
-.section-gray > * {
+.section-gray-inner {
     max-width: 960px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 32px;
-    padding-right: 32px;
+    margin: 0 auto;
+    padding: 0 32px;
 }
 
 .section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.8rem;
-    font-weight: 600;
+    font-size: 1.6rem;
+    font-weight: 800;
     margin-bottom: 40px;
     color: var(--primary);
     position: relative;
     display: inline-block;
+    letter-spacing: -0.3px;
 }
 
 .section-title::after {
@@ -188,17 +185,14 @@ body {
 
 .about-photo img {
     width: 160px;
-    height: 200px;
-    object-fit: cover;
-    object-position: top;
+    height: auto;
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .about-headline {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1.15rem;
+    font-weight: 700;
     margin-bottom: 16px;
     color: var(--primary);
 }
@@ -222,7 +216,7 @@ body {
 
 .about-details h4 {
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: var(--accent);
@@ -243,13 +237,13 @@ body {
     display: block;
     font-size: 0.72rem;
     color: var(--text-light);
-    font-weight: 400;
+    font-weight: 500;
 }
 
 .timeline-title {
     display: block;
     font-size: 0.85rem;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text);
     margin-top: 2px;
     line-height: 1.4;
@@ -277,55 +271,54 @@ body {
     color: var(--accent);
     border-radius: 3px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.3px;
 }
 
 /* --- Roadmap --- */
 .roadmap-section {
     display: flex;
-    gap: 32px;
+    gap: 12px;
     margin-bottom: 36px;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
 }
 
 .roadmap-group {
     background: var(--white);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 16px 20px;
+    padding: 12px 16px;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
 .roadmap-label {
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: 0.68rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.5px;
     color: var(--text-light);
     white-space: nowrap;
-    min-width: 80px;
 }
 
 .roadmap-items {
     display: flex;
-    gap: 6px;
+    gap: 4px;
 }
 
 .roadmap-item {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.3px;
-    transition: transform 0.2s;
 }
 
 .roadmap-item.completed {
@@ -338,10 +331,6 @@ body {
     color: #bbb;
 }
 
-.roadmap-item.completed:hover {
-    transform: scale(1.1);
-}
-
 /* --- Project Card --- */
 .project-card {
     background: var(--white);
@@ -350,11 +339,6 @@ body {
     padding: 36px;
     margin-bottom: 20px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
-    transition: box-shadow 0.3s;
-}
-
-.project-card:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .project-header {
@@ -377,15 +361,15 @@ body {
 
 .project-category {
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--accent);
     letter-spacing: 1px;
     text-transform: uppercase;
 }
 
 .project-card h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.35rem;
+    font-size: 1.3rem;
+    font-weight: 700;
     margin-bottom: 8px;
     color: var(--primary);
 }
@@ -410,7 +394,7 @@ body {
     padding: 6px 14px;
     border-radius: 4px;
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.3px;
 }
 
@@ -438,7 +422,7 @@ body {
     color: var(--primary);
     border-radius: 4px;
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.5px;
     cursor: pointer;
     transition: all 0.3s;
@@ -462,7 +446,7 @@ body {
 
 .detail-section h4 {
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: var(--accent);
@@ -489,7 +473,7 @@ body {
 }
 
 .detail-section li strong {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text);
 }
 
@@ -505,7 +489,7 @@ body {
     background: var(--bg-gray);
     padding: 10px 14px;
     text-align: left;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -521,7 +505,7 @@ body {
 
 .result-table strong {
     color: var(--accent);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .row-highlight {
@@ -550,10 +534,17 @@ body {
     font-size: 0.75rem;
     color: #aaa;
     margin-top: 8px;
-    font-weight: 400;
+    font-weight: 500;
 }
 
-/* --- Source Link --- */
+/* --- Source Link & Detail Footer --- */
+.detail-footer {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 .source-link {
     display: inline-block;
     padding: 10px 28px;
@@ -562,13 +553,33 @@ body {
     border-radius: 4px;
     text-decoration: none;
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.5px;
     transition: all 0.3s;
 }
 
 .source-link:hover {
     background: var(--accent);
+}
+
+.back-to-top {
+    display: inline-block;
+    padding: 10px 28px;
+    background: var(--white);
+    color: var(--text-light);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.back-to-top:hover {
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 /* --- Skills --- */
@@ -583,16 +594,11 @@ body {
     padding: 24px;
     border-radius: 8px;
     border: 1px solid var(--border);
-    transition: box-shadow 0.3s;
-}
-
-.skill-category:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .skill-category h4 {
     font-size: 0.78rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: var(--accent);
@@ -609,7 +615,7 @@ body {
 
 .footer-message {
     font-size: 0.95rem;
-    font-weight: 300;
+    font-weight: 400;
     color: rgba(255, 255, 255, 0.7);
     margin-bottom: 28px;
 }
@@ -650,7 +656,6 @@ body {
 
     .about-photo img {
         width: 140px;
-        height: 175px;
     }
 
     .about-details {
@@ -667,12 +672,7 @@ body {
     }
 
     .roadmap-section {
-        gap: 12px;
-    }
-
-    .roadmap-group {
-        padding: 12px 16px;
-        width: 100%;
+        gap: 8px;
     }
 
     .project-card {
