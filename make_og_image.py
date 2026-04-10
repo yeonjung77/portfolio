@@ -88,8 +88,8 @@ y += 30
 # 이력 요약 (작은 글씨)
 items = [
     "Kakao Tech Bootcamp - AI Development",
-    "M.S. Yonsei University - Fashion Consumer Psychology",
-    "ex-SF Lab Inc. - Fashion Data & Service Planning",
+    "SF Lab Inc. - Fashion Data & Service Planning",
+    "M.S. Yonsei University - Clothing and Textiles",
 ]
 for item in items:
     draw.text((TEXT_X, y), item, font=font_body, fill=TEXT)
