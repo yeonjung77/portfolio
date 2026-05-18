@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P1. Fashion Classification — Yeonjung Won</title>
+    <meta name="description" content="6-task multi-task classification on 43K fashion images. EfficientNet-B3 vs ViT-B/16 fair comparison reveals data — not model — as the real ceiling.">
+
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/project.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="project-page">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="p1_classification.html" class="active">EN</a>
+                <a href="../../projects/p1_classification.html">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P1</span> &middot; <span>CV Basic</span>
+        </div>
+        <h1>Fashion Product Image Classification</h1>
+        <p class="project-hero-tagline">
+            Built a multi-task classification model that simultaneously predicts 6 attributes for 43,005 fashion product images, and<br>
+            compared EfficientNet-B3 and ViT-B/16 under identical training conditions.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">99.4%</div>
+                <div class="metric-label">Category Accuracy</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">0.678</div>
+                <div class="metric-label">Avg Attribute F1</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">0.0002</div>
+                <div class="metric-label">EffNet vs ViT Δ</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">43K / 6</div>
+                <div class="metric-label">Images / Tasks</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">PyTorch</span>
+            <span class="tag">EfficientNet-B3</span>
+            <span class="tag">ViT-B/16</span>
+            <span class="tag">Multi-task Learning</span>
+            <span class="tag">Transfer Learning</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>Scope : </strong> A multi-task classifier predicting 6 attributes (category, subcategory, article type, color, season, usage) for 43,005 fashion product images with a single reproducible pipeline from EDA to inference</li>
+        <li><strong>Fair comparison : </strong> Trained EfficientNet-B3 and ViT-B/16 by varying only the backbone while keeping loss, optimizer, scheduler, augmentation, seed, and all other settings identical</li>
+        <li><strong>Key finding : </strong> The two models differ by only 0.0002 in avg_attr_f1 despite an 8&times; gap in backbone capacity; the performance ceiling stems from data quality and class imbalance, not the architecture</li>
+        <li><strong>Final choice : </strong> Selected EfficientNet-B3, which offers equivalent accuracy with 1/8 the parameters and meaningful gains in training and inference speed</li>
+    </ul>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>Problem</h2>
+    <p>
+        Build a model that predicts 6 attributes from low-resolution (60&times;80) fashion product images.
+        Real-world fashion retrieval and recommendation services need to extract multiple attributes per item.
+    </p>
+    <div class="callout">
+        <strong>Challenges identified during EDA:</strong>
+        <ul>
+            <li>Severe class imbalance &mdash; <code>masterCategory</code> ratio max/min = <strong>21,397&times;</strong></li>
+            <li>Long-tailed colors &mdash; 12 / 46 color classes have fewer than 50 training samples</li>
+            <li>Label ambiguity &mdash; humans can't reliably distinguish Beige vs Cream, Off White vs White</li>
+            <li>Low resolution &mdash; 60&times;80 pixels constrains fine color-tone discrimination</li>
+        </ul>
+    </div>
+</section>
+
+<!-- Data Pipeline -->
+<section class="project-section">
+    <h2>Data &amp; Preprocessing</h2>
+
+    <h3>Pipeline result</h3>
+    <table class="result-table">
+        <thead><tr><th>Step</th><th>Rows</th><th>Change</th></tr></thead>
+        <tbody>
+            <tr><td>Raw <code>styles.csv</code></td><td>44,424</td><td>&mdash;</td></tr>
+            <tr><td>Drop missing labels</td><td>44,079</td><td>-345</td></tr>
+            <tr><td>Drop rows without images</td><td>44,074</td><td>-5</td></tr>
+            <tr><td><code>articleType</code> &lt; 50 classes dropped</td><td><strong>43,005</strong></td><td>-1,069</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Lost 1,419 rows (3.19%) total, yielding a clean trainable dataset. Final class counts: 5 categories, 30 subcategories, 68 article types, 46 colors, 4 seasons, 7 usages.</p>
+
+    <h3>Split (Stratified by <code>masterCategory</code>, seed=42)</h3>
+    <table class="result-table">
+        <thead><tr><th>Train</th><th>Val</th><th>Test</th></tr></thead>
+        <tbody>
+            <tr><td>30,103 (70%)</td><td>6,451 (15%)</td><td>6,451 (15%)</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Method -->
+<section class="project-section">
+    <h2>Method</h2>
+
+    <h3>6-Head Multi-task Architecture</h3>
+    <pre class="code-block">Image [B, 3, 224, 224]
+  → Backbone (timm)        → features [B, feature_dim]
+  → Dropout(0.3)
+  → heads["category"]      Linear → [B, 5]
+  → heads["subcategory"]   Linear → [B, 30]
+  → heads["articletype"]   Linear → [B, 68]
+  → heads["color"]         Linear → [B, 46]
+  → heads["season"]        Linear → [B, 4]
+  → heads["usage"]         Linear → [B, 7]</pre>
+
+    <h3>Loss</h3>
+    <pre class="code-block">total = 1.0 × L_category
+      + 0.5 × mean(L_subcategory, L_articletype, L_color, L_season, L_usage)</pre>
+    <p>All 6 heads use <code>CrossEntropyLoss(label_smoothing=0.1)</code>.</p>
+
+    <h3>Training setup (identical for both models)</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>Optimizer</td><td>AdamW (backbone lr 1e-4, head lr 1e-3, weight_decay 0.01)</td></tr>
+            <tr><td>Scheduler</td><td>CosineAnnealingLR (T_max=30, eta_min=1e-6)</td></tr>
+            <tr><td>Early Stopping</td><td>patience 5, monitor <code>avg_attr_f1</code> (category saturates at 99% in 1-2 epochs)</td></tr>
+            <tr><td>Augmentation (train)</td><td>RandomResizedCrop + Flip + ColorJitter + ImageNet Normalize</td></tr>
+            <tr><td>Augmentation (val/test)</td><td>Resize 256 → CenterCrop 224</td></tr>
+            <tr><td>Hyperparams</td><td>batch_size 32, epochs 30, image 224&times;224, seed 42</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Only the backbone differs; all other settings are held constant so that any performance difference stems purely from architecture.</p>
+</section>
+
+<!-- Results -->
+<section class="project-section">
+    <h2>Results</h2>
+
+    <h3>Test metrics (best model)</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Metric</th><th>EfficientNet-B3</th><th>ViT-B/16</th><th>Winner</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>best_epoch</td><td>26</td><td>30</td><td>&mdash;</td></tr>
+            <tr><td>Category Accuracy</td><td><strong>0.9944</strong></td><td>0.9941</td><td>EffNet</td></tr>
+            <tr><td>Category Macro F1</td><td>0.8492</td><td><strong>0.8689</strong></td><td>ViT</td></tr>
+            <tr><td>SubCategory F1</td><td><strong>0.9182</strong></td><td>0.8834</td><td>EffNet</td></tr>
+            <tr><td>ArticleType F1</td><td><strong>0.8280</strong></td><td>0.8246</td><td>EffNet</td></tr>
+            <tr><td>Color F1</td><td>0.3713</td><td><strong>0.4009</strong></td><td>ViT</td></tr>
+            <tr><td>Season F1</td><td>0.7790</td><td><strong>0.7906</strong></td><td>ViT</td></tr>
+            <tr><td>Usage F1</td><td><strong>0.4931</strong></td><td>0.4910</td><td>EffNet</td></tr>
+            <tr class="row-highlight"><td><strong>Avg Attribute F1</strong></td><td>0.6779</td><td><strong>0.6781</strong></td><td>ViT (+0.0002)</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Tasks split exactly <strong>3:3</strong> between the two backbones, and the average difference is a mere 0.03 percentage points.</p>
+
+    <h3>Training curves</h3>
+    <figure>
+        <img src="../../assets/img/projects/p1/effnet_training_curves.png" alt="EfficientNet training curves">
+        <figcaption>EfficientNet-B3 — train/val loss · validation metrics · cosine LR schedule</figcaption>
+    </figure>
+
+    <h3>Per-task F1 (EfficientNet-B3)</h3>
+    <figure>
+        <img src="../../assets/img/projects/p1/effnet_task_f1.png" alt="Per-task F1 scores">
+        <figcaption>Category nearly saturated. Color and usage are the weak tasks.</figcaption>
+    </figure>
+</section>
+
+<!-- Key Insight -->
+<section class="project-section project-insight">
+    <h2>Insight</h2>
+
+    <h3>Class imbalance directly determines per-class F1</h3>
+    <figure>
+        <img src="../../assets/img/projects/p1/samples_vs_f1.png" alt="Train samples vs test F1">
+        <figcaption>X-axis: train samples per class (log) · Y-axis: test macro F1 per class · red &times; markers indicate F1 &lt; 0.05.</figcaption>
+    </figure>
+    <p>
+        The pattern is clear in the <code>color</code> scatter plot: <strong>all 12 classes with fewer than 50 training samples collapse to F1 ≈ 0</strong>,
+        and the same pattern holds for <code>usage</code> (Party = 18, Travel = 15 training samples).
+        When training data is sufficient the model performs reliably, but in data-scarce classes no architectural change can compensate.
+    </p>
+
+    <ol class="evidence-list">
+        <li>
+            <strong>EfficientNet and ViT differ by only 0.0002 in avg_attr_f1.</strong>
+            If the backbone architecture were the deciding factor, an 8&times; parameter increase (10.94M → 85.92M) should yield a meaningful gain.
+        </li>
+        <li>
+            <strong>The color weakness appears identically across both backbones</strong> (0.37 vs 0.40).
+            Architecture changes alone cannot resolve this limitation.
+        </li>
+    </ol>
+
+    <h3>Confusion patterns support label ambiguity</h3>
+    <figure>
+        <img src="../../assets/img/projects/p1/wrong_predictions.png" alt="High-confidence wrong predictions">
+        <figcaption>High-confidence misclassifications on color. Most are pairs humans also find ambiguous (Beige vs Cream, Off White vs White) — a label-noise ceiling.</figcaption>
+    </figure>
+</section>
+
+<!-- Comparison -->
+<section class="project-section">
+    <h2>Model Comparison &mdash; CNN vs Transformer</h2>
+
+    <figure>
+        <img src="../../assets/img/projects/p1/compare_curves.png" alt="EfficientNet vs ViT learning curves">
+        <figcaption>Overlaid training curves of the two models. ViT, with 8&times; more parameters, tracks EffNet's val loss almost identically.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="../../assets/img/projects/p1/compare_f1_bar.png" alt="Per-task F1 comparison">
+        <figcaption>Per-task F1 comparison. ViT shows a marginal edge on global-pattern tasks like color and category, while EffNet edges ahead on shape-based subcategory. Average difference is at noise level.</figcaption>
+    </figure>
+
+    <h3>Hypothesis on the micro-differences</h3>
+    <ul>
+        <li><strong>EffNet leads in subcategory (+0.035)</strong> — CNN's local features favor recognizing garment <em>shape</em>.</li>
+        <li><strong>ViT leads in color (+0.030) and category_f1 (+0.020)</strong> — Transformer's global self-attention better captures <em>holistic</em> patterns like overall color or category.</li>
+    </ul>
+
+    <h3>Final choice :  EfficientNet-B3</h3>
+    <p>
+        Equivalent performance, parameters at 1/8 the scale, and an advantage in both training and inference speed.
+        Since ViT's additional capacity does not translate into improved generalization on this dataset,
+        EfficientNet is the more practical choice.
+    </p>
+</section>
+
+<!-- Val/Test gap -->
+<section class="project-section">
+    <h2>Generalization gap — inference re-evaluation</h2>
+    <p>
+        Compared <code>best_val_metrics</code> (validation result at the best checkpoint during training) with <code>test_metrics</code> (held-out test set results).
+    </p>
+    <table class="result-table">
+        <thead><tr><th>Metric</th><th>EffNet (val&rarr;test)</th><th>ViT (val&rarr;test)</th><th>Note</th></tr></thead>
+        <tbody>
+            <tr><td>avg_attr_f1</td><td>-0.0198</td><td>-0.0184</td><td>Nearly identical gap</td></tr>
+            <tr><td>usage_f1</td><td><strong>-0.0795 ⚠️</strong></td><td><strong>-0.0827 ⚠️</strong></td><td>Both unstable (Party 18, Travel 15)</td></tr>
+            <tr><td>category_f1</td><td>+0.0105</td><td>+0.0261</td><td>Test &gt; val (split variance, not overfit)</td></tr>
+        </tbody>
+    </table>
+    <p>
+        <strong>The generalization gap is nearly identical across the two models.</strong>
+        If the backbone influenced robustness, the ViT with 8&times; the capacity should have shown either greater overfitting or better generalization,
+        yet neither pattern emerged. The main source of variance is the data — specifically the distributional instability of minority-class tasks.
+    </p>
+</section>
+
+<!-- Engineering -->
+<section class="project-section">
+    <h2>Engineering notes</h2>
+    <ul class="engineering-list">
+        <li><strong>Single source of truth.</strong> <code>1_utils.TASK_KEYS</code> defines the 6-task specification and <code>2_preprocess.COLUMN_TO_TASK</code> handles the mapping between CSV columns and model keys. The model, loss, dataset, and trainer all reference the same source, eliminating duplicated string definitions and ensuring that typos immediately fail with a <code>KeyError</code> for efficient debugging.</li>
+        <li><strong>Modular pipeline.</strong> Responsibilities are split across files 1–7 (utils → preprocess → dataset → model → loss → scheduler → trainer) and <code>main.py</code>, enabling each module to be tested independently and learning components to be swapped freely.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Looking for career opportunities in Fashion AI, Computer Vision, and ML Engineering.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 Yeonjung Won &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>

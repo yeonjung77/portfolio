@@ -1,0 +1,279 @@
+/* ============================================================
+   project.css — Styles specific to individual project pages.
+   Inherits typography, colors, and base components from style.css.
+   ============================================================ */
+
+/* ---------- Body / Layout ---------- */
+body.project-page {
+    background: #fafafa;
+}
+body.project-page .nav-inner {
+    max-width: 1028px;
+}
+
+/* ---------- Project Hero ---------- */
+.project-hero {
+    padding: 100px 24px 60px;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f5f7 100%);
+    border-bottom: 1px solid #ececec;
+}
+.project-hero-inner {
+    max-width: 980px;
+    margin: 0 auto;
+}
+.project-breadcrumb {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 18px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.project-breadcrumb .status-done {
+    color: #2e7d32;
+    font-weight: 600;
+}
+.project-hero h1 {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+}
+.project-hero-tagline {
+    font-size: 17px;
+    line-height: 1.65;
+    color: #444;
+    margin: 0 0 36px;
+    max-width: 760px;
+}
+.project-hero-tagline strong { color: #111; }
+
+/* ---------- Metric Cards Row ---------- */
+.project-metrics-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin: 0 0 28px;
+}
+.metric-card {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    padding: 18px 20px;
+    text-align: left;
+}
+.metric-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #111;
+    letter-spacing: -0.01em;
+}
+.metric-label {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ---------- Project Sections ---------- */
+.project-section {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 56px 24px;
+    border-bottom: 1px solid #ececec;
+}
+.project-section:last-of-type {
+    border-bottom: none;
+}
+.project-section h2 {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0 0 22px;
+    letter-spacing: -0.01em;
+}
+.project-section h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 28px 0 12px;
+    color: #222;
+}
+.project-section p {
+    font-size: 15.5px;
+    line-height: 1.75;
+    color: #333;
+    margin: 0 0 14px;
+}
+.project-section ul,
+.project-section ol {
+    font-size: 15.5px;
+    line-height: 1.8;
+    color: #333;
+    padding-left: 24px;
+}
+.project-section li {
+    margin-bottom: 6px;
+}
+.project-section code {
+    background: #f1f1f3;
+    color: #b03060;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.93em;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* ---------- Summary ---------- */
+.project-summary {
+    background: #fff;
+    border-radius: 14px;
+    margin-top: 36px;
+    box-shadow: 0 1px 0 #ececec;
+}
+.summary-list strong { color: #111; }
+
+/* ---------- Callouts ---------- */
+.callout {
+    background: #f7f7fb;
+    border-left: 3px solid #6366f1;
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin: 20px 0;
+}
+.callout strong { color: #111; }
+
+/* ---------- Code blocks ---------- */
+.code-block {
+    background: #1f2329;
+    color: #e6e6e6;
+    border-radius: 10px;
+    padding: 18px 22px;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0 20px;
+}
+.code-block code { background: transparent; color: inherit; padding: 0; }
+
+/* ---------- Tables ---------- */
+.project-section .result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 22px;
+    font-size: 14.5px;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 0 #ececec;
+}
+.project-section .result-table th,
+.project-section .result-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid #f0f0f2;
+    text-align: left;
+}
+.project-section .result-table th {
+    background: #f7f7f9;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #555;
+}
+.project-section .result-table tr.row-highlight td {
+    background: #fff7ea;
+    font-weight: 600;
+}
+.project-section .result-table td strong { color: #2e7d32; }
+
+/* ---------- Figures ---------- */
+.project-section figure {
+    margin: 18px 0 28px;
+    text-align: center;
+}
+.project-section figure img {
+    width: 100%;
+    max-width: 880px;
+    height: auto;
+    border: 1px solid #ececec;
+    border-radius: 10px;
+    background: #fff;
+}
+.project-section figure figcaption {
+    font-size: 13.5px;
+    color: #666;
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+/* ---------- Insight section accent ---------- */
+.project-insight {
+    background: #fafafa;
+}
+.project-insight h2 {
+    color: #111;
+}
+.evidence-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #ececec;
+}
+.evidence-list li:last-child { border-bottom: none; }
+.evidence-list strong { color: #111; }
+
+/* ---------- Next steps / Engineering ---------- */
+.next-steps-list li,
+.engineering-list li {
+    padding: 8px 0;
+}
+.engineering-list strong { color: #111; }
+
+/* ---------- Resources / Links ---------- */
+.project-links {
+    background: #1f2329;
+    color: #e6e6e6;
+    border-radius: 14px;
+    margin: 40px 24px 60px;
+    padding: 36px 32px;
+    max-width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.project-links h2 { color: #fff; }
+.project-links p { color: #c8c8c8; }
+.resource-links {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+}
+.resource-links li {
+    color: #c8c8c8;
+    padding: 6px 0;
+}
+.resource-links strong { color: #fff; margin-right: 6px; }
+.project-links code {
+    background: #2a2f37;
+    color: #f7c590;
+}
+.back-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: #ffffff;
+    border-bottom: 1px solid #ffffff60;
+    text-decoration: none;
+    padding-bottom: 2px;
+}
+.back-link:hover { border-bottom-color: #fff; }
+
+/* ---------- Helpers ---------- */
+.muted {
+    color: #777;
+    font-size: 14px;
+}
+
+/* ---------- Tags (override for project page sizing) ---------- */
+.project-hero .tag-group .tag {
+    background: #ffffff;
+    border: 1px solid #ececec;
+    color: #333;
+}

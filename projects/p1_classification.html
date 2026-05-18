@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P1. 패션 상품 이미지 분류 · 원연정</title>
+    <meta name="description" content="패션 상품 43,005장으로 6-태스크 멀티태스크 분류기 학습">
+
+    <!-- Pretendard 한글 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/project.css">
+</head>
+<body class="project-page lang-ko">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="../en/projects/p1_classification.html">EN</a>
+                <a href="p1_classification.html" class="active">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P1</span> &middot; <span>CV Basic</span>
+        </div>
+        <h1>패션 상품 이미지 분류</h1>
+        <p class="project-hero-tagline">
+            패션 상품 이미지 43,005장에 대해 6개 속성을 동시 예측하는 멀티태스크 분류 모델을 구축하고,<br>
+            EfficientNet-B3와 ViT-B/16을 동일한 학습 조건에서 비교 평가하였다.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">99.4%</div>
+                <div class="metric-label">Category Accuracy</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">0.678</div>
+                <div class="metric-label">Avg Attribute F1</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">0.0002</div>
+                <div class="metric-label">EffNet vs ViT 차이</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">43K / 6</div>
+                <div class="metric-label">이미지 / 태스크</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">PyTorch</span>
+            <span class="tag">EfficientNet-B3</span>
+            <span class="tag">ViT-B/16</span>
+            <span class="tag">Multi-task Learning</span>
+            <span class="tag">Transfer Learning</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>구축 대상 : </strong> 패션 상품 이미지 43,005장에 대해 6개 속성(카테고리, 서브카테고리, 아이템 종류, 색상, 시즌, 용도)을 단일 모델로 예측하는 멀티태스크 분류기. EDA부터 추론에 이르는 전 과정을 재현 가능한 단일 파이프라인으로 구성</li>
+        <li><strong>공정 비교 : </strong> EfficientNet-B3와 ViT-B/16을 백본만 변경하고 loss, optimizer, scheduler, augmentation, seed 등 나머지 설정은 모두 동일하게 학습</li>
+        <li><strong>핵심 발견 : </strong> 두 모델의 avg_attr_f1 차이는 0.0002로, 백본 capacity 8배 차이에도 성능이 사실상 동일. 모델 아키텍처가 아닌 데이터 품질과 클래스 불균형이 성능 한계의 주된 원인임을 확인</li>
+        <li><strong>최종 모델 선택 : </strong> 동등한 성능 대비 파라미터 1/8, 학습 및 추론 속도에서 유의미한 이점인 EfficientNet-B3를 선택</li>
+    </ul>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>문제 정의</h2>
+    <p>
+        60&times;80 저해상도 패션 상품 이미지에서 6개 속성을 예측하는 모델을 구축한다.
+        패션 검색 및 추천 서비스에서는 상품 한 건당 다수의 속성을 추출해야 한다.
+    </p>
+    <div class="callout">
+        <strong>EDA에서 미리 발견한 도전 과제:</strong>
+        <ul>
+            <li>극심한 클래스 불균형 — <code>masterCategory</code> 최대/최소 비율 21,397배</li>
+            <li>Long-tail color — 46개 색상 중 12개가 학습 샘플 50개 미만</li>
+            <li>라벨 모호성 — Beige vs Cream, Off White vs White처럼 사람도 구분하기 어려운 쌍이 다수</li>
+            <li>저해상도 한계 — 60&times;80 픽셀로는 미세한 색상 톤 구분이 어려움</li>
+        </ul>
+    </div>
+</section>
+
+<!-- Data Pipeline -->
+<section class="project-section">
+    <h2>데이터와 전처리</h2>
+
+    <h3>파이프라인 결과</h3>
+    <table class="result-table">
+        <thead><tr><th>단계</th><th>행 수</th><th>변화</th></tr></thead>
+        <tbody>
+            <tr><td>원본 <code>styles.csv</code></td><td>44,424</td><td>—</td></tr>
+            <tr><td>결측 라벨 행 제거</td><td>44,079</td><td>-345</td></tr>
+            <tr><td>이미지 없는 행 제거</td><td>44,074</td><td>-5</td></tr>
+            <tr><td><code>articleType</code> 50개 미만 클래스 제거</td><td><strong>43,005</strong></td><td>-1,069</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">총 1,419행(3.19%) 손실로 학습 가능한 깨끗한 데이터 확보. 최종 클래스 수는 카테고리 5종, 서브카테고리 30종, 아이템 종류 68종, 색상 46종, 시즌 4종, 용도 7종.</p>
+
+    <h3>Split (Stratified by <code>masterCategory</code>, seed=42)</h3>
+    <table class="result-table">
+        <thead><tr><th>Train</th><th>Val</th><th>Test</th></tr></thead>
+        <tbody>
+            <tr><td>30,103 (70%)</td><td>6,451 (15%)</td><td>6,451 (15%)</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Method -->
+<section class="project-section">
+    <h2>학습 방법</h2>
+
+    <h3>6-Head 멀티태스크 구조</h3>
+    <pre class="code-block">Image [B, 3, 224, 224]
+  → Backbone (timm)        → features [B, feature_dim]
+  → Dropout(0.3)
+  → heads["category"]      Linear → [B, 5]
+  → heads["subcategory"]   Linear → [B, 30]
+  → heads["articletype"]   Linear → [B, 68]
+  → heads["color"]         Linear → [B, 46]
+  → heads["season"]        Linear → [B, 4]
+  → heads["usage"]         Linear → [B, 7]</pre>
+
+    <h3>Loss</h3>
+    <pre class="code-block">total = 1.0 × L_category
+      + 0.5 × mean(L_subcategory, L_articletype, L_color, L_season, L_usage)</pre>
+    <p>6개 head 모두 <code>CrossEntropyLoss(label_smoothing=0.1)</code>를 사용하였다.</p>
+
+    <h3>학습 설정 (두 모델 동일)</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>Optimizer</td><td>AdamW (backbone lr 1e-4, head lr 1e-3, weight_decay 0.01)</td></tr>
+            <tr><td>Scheduler</td><td>CosineAnnealingLR (T_max=30, eta_min=1e-6)</td></tr>
+            <tr><td>Early Stopping</td><td>patience 5, <code>avg_attr_f1</code> 기준 (category는 1~2 epoch에 99% 포화)</td></tr>
+            <tr><td>Augmentation (train)</td><td>RandomResizedCrop + Flip + ColorJitter + ImageNet Normalize</td></tr>
+            <tr><td>Augmentation (val/test)</td><td>Resize 256 → CenterCrop 224</td></tr>
+            <tr><td>공통 하이퍼파라미터</td><td>batch_size 32, epochs 30, image 224&times;224, seed 42</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">백본만 다르고 나머지 모든 설정은 동일하게 하여 성능 차이가 오직 아키텍처에서 비롯되도록 설계하였다.</p>
+</section>
+
+<!-- Results -->
+<section class="project-section">
+    <h2>결과</h2>
+
+    <h3>Test 메트릭 (best 모델 기준)</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Metric</th><th>EfficientNet-B3</th><th>ViT-B/16</th><th>우위</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>best_epoch</td><td>26</td><td>30</td><td>—</td></tr>
+            <tr><td>Category Accuracy</td><td><strong>0.9944</strong></td><td>0.9941</td><td>EffNet</td></tr>
+            <tr><td>Category Macro F1</td><td>0.8492</td><td><strong>0.8689</strong></td><td>ViT</td></tr>
+            <tr><td>SubCategory F1</td><td><strong>0.9182</strong></td><td>0.8834</td><td>EffNet</td></tr>
+            <tr><td>ArticleType F1</td><td><strong>0.8280</strong></td><td>0.8246</td><td>EffNet</td></tr>
+            <tr><td>Color F1</td><td>0.3713</td><td><strong>0.4009</strong></td><td>ViT</td></tr>
+            <tr><td>Season F1</td><td>0.7790</td><td><strong>0.7906</strong></td><td>ViT</td></tr>
+            <tr><td>Usage F1</td><td><strong>0.4931</strong></td><td>0.4910</td><td>EffNet</td></tr>
+            <tr class="row-highlight"><td><strong>Avg Attribute F1</strong></td><td>0.6779</td><td><strong>0.6781</strong></td><td>ViT (+0.0002)</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">태스크 우위가 정확히 <strong>3:3</strong>으로 갈렸고, 평균 차이는 0.03%p에 불과하다.</p>
+
+    <h3>학습 곡선</h3>
+    <figure>
+        <img src="../assets/img/projects/p1/effnet_training_curves.png" alt="EfficientNet 학습 곡선">
+        <figcaption>EfficientNet-B3 — train/val loss · validation 메트릭 · cosine LR 스케줄</figcaption>
+    </figure>
+
+    <h3>태스크별 F1 (EfficientNet-B3)</h3>
+    <figure>
+        <img src="../assets/img/projects/p1/effnet_task_f1.png" alt="태스크별 F1">
+        <figcaption>Category는 거의 포화. Color와 Usage가 약한 태스크</figcaption>
+    </figure>
+</section>
+
+<!-- Key Insight -->
+<section class="project-section project-insight">
+    <h2>인사이트</h2>
+
+    <h3>클래스 불균형이 클래스별 F1을 직접 결정한다</h3>
+    <figure>
+        <img src="../assets/img/projects/p1/samples_vs_f1.png" alt="학습 샘플 수 vs Test F1">
+        <figcaption>X축: 클래스별 학습 샘플 수 (log) · Y축: 클래스별 test macro F1 · 빨간 &times; 표시는 F1 &lt; 0.05.</figcaption>
+    </figure>
+    <p>
+        <code>color</code> 산점도에서 패턴이 명확히 드러난다. <strong>학습 샘플 50개 미만인 12개 클래스가 모두 F1 ≈ 0으로 수렴</strong>하였으며,
+        동일한 패턴이 <code>usage</code> 태스크에서도 관찰된다 (Party 18개, Travel 15개 학습 샘플).
+        학습 데이터가 충분한 클래스에서는 모델 성능이 안정적이지만, 데이터가 부족한 클래스에서는 어떠한 아키텍처 변경으로도 보완할 수 없음을 시사한다.
+    </p>
+
+    <ol class="evidence-list">
+        <li>
+            <strong>EfficientNet과 ViT의 avg_attr_f1 차이가 0.0002에 불과하다.</strong>
+            백본 아키텍처가 결정 요인이라면 파라미터 8배 증가(10.94M → 85.92M)에 따른 유의미한 성능 차이가 관측되어야 한다.
+        </li>
+        <li>
+            <strong>color 태스크의 성능 저하가 두 백본에서 동일하게 관측된다</strong> (0.37 vs 0.40).
+            아키텍처 변경만으로 해당 약점이 해소되지 않음을 확인할 수 있다.
+        </li>
+    </ol>
+
+    <h3>혼동 패턴도 라벨 모호성을 뒷받침한다</h3>
+    <figure>
+        <img src="../assets/img/projects/p1/wrong_predictions.png" alt="confidence 높은 오답">
+        <figcaption>Color 태스크에서 confidence는 높은데 틀린 케이스들. 대부분 사람이 봐도 헷갈리는 쌍 (Beige vs Cream, Off White vs White) — label noise의 벽</figcaption>
+    </figure>
+</section>
+
+<!-- Comparison -->
+<section class="project-section">
+    <h2>모델 비교 — CNN vs Transformer</h2>
+
+    <figure>
+        <img src="../assets/img/projects/p1/compare_curves.png" alt="EfficientNet vs ViT 학습 곡선">
+        <figcaption>두 모델의 학습 곡선 overlay. 파라미터가 8배 많은 ViT도 val loss는 EffNet과 거의 똑같이 흘러간다.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="../assets/img/projects/p1/compare_f1_bar.png" alt="태스크별 F1 비교">
+        <figcaption>태스크별 F1 비교. ViT는 color와 category 같은 전역 패턴 인식에서, EffNet은 형태 기반 subcategory에서 미세 우위. 평균 차이는 노이즈 수준이다.</figcaption>
+    </figure>
+
+    <h3>미세 차이에 대한 가설</h3>
+    <ul>
+        <li><strong>EffNet이 subcategory에서 우위 (+0.035)</strong> — CNN의 local feature가 의류 <em>형태</em> 인식에 유리.</li>
+        <li><strong>ViT가 color (+0.030), category_f1 (+0.020)에서 우위</strong> — Transformer의 global self-attention이 색감이나 카테고리처럼 <em>전역적</em> 패턴에 유리.</li>
+    </ul>
+
+    <h3>최종 모델 선택 :  EfficientNet-B3</h3>
+    <p>
+        성능은 동등하면서 파라미터는 1/8 수준이며, 학습 및 추론 속도에서도 우위에 있다.
+        본 데이터셋에서 ViT의 추가 capacity가 일반화 성능 향상으로 이어지지 않은 만큼,
+        실용성 관점에서 EfficientNet이 더 적합한 선택이다.
+    </p>
+</section>
+
+<!-- Val/Test gap -->
+<section class="project-section">
+    <h2>일반화 갭 — Inference 재평가</h2>
+    <p>
+        <code>best_val_metrics</code>(학습 중 best 시점의 val 결과)와 <code>test_metrics</code>(보류된 test set 결과)를 비교했다.
+    </p>
+    <table class="result-table">
+        <thead><tr><th>Metric</th><th>EffNet (val→test)</th><th>ViT (val→test)</th><th>해석</th></tr></thead>
+        <tbody>
+            <tr><td>avg_attr_f1</td><td>-0.0198</td><td>-0.0184</td><td>두 모델 갭 거의 동일</td></tr>
+            <tr><td>usage_f1</td><td><strong>-0.0795 ⚠️</strong></td><td><strong>-0.0827 ⚠️</strong></td><td>둘 다 불안정 (Party 18, Travel 15)</td></tr>
+            <tr><td>category_f1</td><td>+0.0105</td><td>+0.0261</td><td>test가 val보다 높음 — overfit이 아니라 split 분산</td></tr>
+        </tbody>
+    </table>
+    <p>
+        <strong>두 모델의 일반화 갭이 거의 동일하다.</strong>
+        백본이 robustness에 영향을 미친다면 capacity가 8배 큰 ViT에서 더 큰 overfitting 혹은 더 우수한 일반화가 관측되어야 하나,
+        두 양상 모두 나타나지 않았다. 변동의 주된 원인은 데이터, 특히 소수 클래스 태스크의 분포 불안정성에 있는 것을 확인했다.
+    </p>
+</section>
+
+<!-- Engineering -->
+<section class="project-section">
+    <h2>엔지니어링 노트</h2>
+    <ul class="engineering-list">
+        <li><strong>단일 출처 원칙(Single Source of Truth).</strong> <code>1_utils.TASK_KEYS</code>가 6-태스크 명세를 정의하고, <code>2_preprocess.COLUMN_TO_TASK</code>가 CSV 컬럼과 모델 키의 매핑을 담당한다. 모델·loss·dataset·trainer 모두 동일한 출처를 참조하여 문자열 중복 정의를 제거하였으며, 오타 발생 시 즉시 <code>KeyError</code>로 실패하도록 설계해 디버깅 효율을 확보하였다.</li>
+        <li><strong>모듈화된 파이프라인.</strong> 1~7번 파일(utils → preprocess → dataset → model → loss → scheduler → trainer)과 <code>main.py</code>로 책임을 분리하여, 각 모듈의 독립적 테스트가 가능하며 학습 컴포넌트의 자유로운 교체를 지원한다.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Fashion AI, Computer Vision, ML Engineering 분야의 커리어 기회를 찾고 있습니다.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 원연정 &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>
