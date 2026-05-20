@@ -653,13 +653,35 @@ body {
 }
 
 @media (max-width: 480px) {
-    .hero { padding: 130px 24px 80px; }
-    .hero-label { font-size: 0.7rem; gap: 14px; margin-bottom: 24px; }
-    .hero-label::before, .hero-label::after { width: 28px; }
-    .hero-tagline { font-size: 0.64rem; letter-spacing: 0.08em; margin-bottom: 44px; }
+    .hero { padding: 110px 16px 70px; }
+    .hero-label {
+        font-size: 0.78rem;
+        gap: 10px;
+        letter-spacing: 1.5px;
+        margin-bottom: 22px;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+    }
+    /* 좁은 화면에서는 양쪽 가로선 숨김 — 줄바꿈 깨짐 방지 */
+    .hero-label::before, .hero-label::after { display: none; }
+    .hero-tagline {
+        font-size: 0.78rem;
+        letter-spacing: 0.04em;
+        margin-bottom: 36px;
+        padding: 0 8px;
+        line-height: 1.7;
+    }
     .hero-tagline br { display: none; }
+    .hero-links { gap: 8px; }
     .hero-links a { padding: 7px 14px; font-size: 0.78rem; }
     .nav-links { display: none; }
+}
+
+/* 매우 좁은 화면 (구형 모바일 / 폴드 닫힘 등) */
+@media (max-width: 360px) {
+    .hero { padding: 100px 12px 60px; }
+    .hero-label { font-size: 0.7rem; letter-spacing: 1px; }
+    .hero-tagline { font-size: 0.72rem; }
 }
 
 /* ============================================================
