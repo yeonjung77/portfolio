@@ -125,7 +125,7 @@
                 <span class="roadmap-card-title">CV Basic</span>
                 <div class="roadmap-items">
                     <a class="roadmap-item completed" href="#p1" title="Fashion Classification">P1</a>
-                    <div class="roadmap-item upcoming">P2</div>
+                    <a class="roadmap-item completed" href="#p2" title="Fashion Image Parsing">P2</a>
                     <div class="roadmap-item upcoming">P3</div>
                 </div>
             </div>
@@ -179,21 +179,32 @@
                 </article>
             </a>
 
-            <!-- P2 ~ P8 placeholders -->
-            <article class="project-card project-card-upcoming">
-                <div class="project-header">
-                    <span class="project-number">P2</span>
-                    <span class="project-category">CV Basic</span>
-                    <span class="project-status status-upcoming">Upcoming</span>
-                </div>
-                <h3>Object Detection / Fashionpedia</h3>
-                <p class="project-tagline">Build a model that simultaneously performs bounding-box detection and multi-label attribute classification on fashion items.</p>
-                <div class="tag-group">
-                    <span class="tag">YOLO</span>
-                    <span class="tag">Faster R-CNN</span>
-                    <span class="tag">Multi-label</span>
-                </div>
-            </article>
+            <!-- P2 (Completed) -->
+            <a class="project-card-link" id="p2" href="projects/p2_parsing.html">
+                <article class="project-card">
+                    <div class="project-header">
+                        <span class="project-number">P2</span>
+                        <span class="project-category">CV Basic</span>
+                    </div>
+                    <h3>Fashion Image Parsing</h3>
+                    <p class="project-tagline">Built a 3-task multi-task model (parsing + keypoint + attribute) on 12,694 DeepFashion-MultiModal images, with a fair SegFormer vs DeepLabV3+ comparison.</p>
+                    <div class="project-metrics">
+                        <span class="metric metric-green">Parsing mIoU 0.538</span>
+                        <span class="metric metric-blue">Keypoint PCK 0.819</span>
+                        <span class="metric metric-purple">3 Tasks</span>
+                    </div>
+                    <div class="tag-group">
+                        <span class="tag">PyTorch</span>
+                        <span class="tag">transformers</span>
+                        <span class="tag">SegFormer-B3</span>
+                        <span class="tag">DeepLabV3+ R101</span>
+                        <span class="tag">Multi-task</span>
+                    </div>
+                    <span class="project-link-cta">View Project &rarr;</span>
+                </article>
+            </a>
+
+            <!-- P3 ~ P8 placeholders -->
 
             <article class="project-card project-card-upcoming">
                 <div class="project-header">

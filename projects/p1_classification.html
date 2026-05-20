@@ -83,17 +83,122 @@
     <h2>문제 정의</h2>
     <p>
         60&times;80 저해상도 패션 상품 이미지에서 6개 속성을 예측하는 모델을 구축한다.
-        패션 검색 및 추천 서비스에서는 상품 한 건당 다수의 속성을 추출해야 한다.
+        패션 검색 및 추천 서비스에서는 상품 한 건당 다수의 속성을 추출한다.
     </p>
-    <div class="callout">
-        <strong>EDA에서 미리 발견한 도전 과제:</strong>
-        <ul>
-            <li>극심한 클래스 불균형 — <code>masterCategory</code> 최대/최소 비율 21,397배</li>
-            <li>Long-tail color — 46개 색상 중 12개가 학습 샘플 50개 미만</li>
-            <li>라벨 모호성 — Beige vs Cream, Off White vs White처럼 사람도 구분하기 어려운 쌍이 다수</li>
-            <li>저해상도 한계 — 60&times;80 픽셀로는 미세한 색상 톤 구분이 어려움</li>
-        </ul>
-    </div>
+</section>
+
+<!-- EDA -->
+<section class="project-section">
+    <h2>데이터 탐색 (EDA)</h2>
+
+    <h3>데이터셋 개요</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>출처</td><td>Fashion Product Images (Small) &mdash; Kaggle, CC0</td></tr>
+            <tr><td>전체 데이터 수</td><td>44,424행</td></tr>
+            <tr><td>이미지 해상도</td><td>80&times;60 픽셀 고정 (JPEG)</td></tr>
+            <tr><td>메타데이터 컬럼</td><td><code>id, gender, masterCategory, subCategory, articleType, baseColour, season, year, usage, productDisplayName</code></td></tr>
+            <tr><td>모델 타겟</td><td>6개 속성 &mdash; category, subcategory, articleType, color, season, usage</td></tr>
+        </tbody>
+    </table>
+
+    <br>
+
+    <h3>6개 속성 & 클래스 예시</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>속성</th><th>의미</th><th>클래스 수 (raw)</th><th>예시 클래스</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>masterCategory</code></td>
+                <td>대분류</td>
+                <td>7</td>
+                <td>Apparel, Accessories, Footwear, Personal Care, Free Items, Sporting Goods, Home</td>
+            </tr>
+            <tr>
+                <td><code>subCategory</code></td>
+                <td>중분류</td>
+                <td>45</td>
+                <td>Topwear, Bottomwear, Bags, Watches, Shoes, Innerwear, Jewellery, Sandal &hellip;</td>
+            </tr>
+            <tr>
+                <td><code>articleType</code></td>
+                <td>아이템 종류</td>
+                <td>143</td>
+                <td>T-shirts, Shirts, Jeans, Watches, Casual Shoes, Sandals, Kurtas, Handbags &hellip;</td>
+            </tr>
+            <tr>
+                <td><code>baseColour</code></td>
+                <td>대표 색상</td>
+                <td>46</td>
+                <td>Black, White, Blue, Brown, Grey, Red, Pink, Navy Blue, Green &hellip;</td>
+            </tr>
+            <tr>
+                <td><code>season</code></td>
+                <td>착용 계절</td>
+                <td>4</td>
+                <td>Summer, Fall, Winter, Spring</td>
+            </tr>
+            <tr>
+                <td><code>usage</code></td>
+                <td>착용 용도</td>
+                <td>8</td>
+                <td>Casual, Sports, Ethnic, Formal, Smart Casual, Party, Travel, Home</td>
+            </tr>
+            <tr class="row-highlight">
+                <td colspan="4" style="text-align:left;">
+                    <strong>참고 컬럼 (모델 타겟 아님)</strong><br>
+                    &middot; <code>gender</code> (5 &mdash; Men, Women, Unisex, Boys, Girls)<br>
+                    &middot; <code>year</code> (수집 연도, 2007&ndash;2019)<br>
+                    &middot; <code>productDisplayName</code> (상품명 텍스트)
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <br>
+
+    <h3>1. masterCategory &mdash; 극심한 불균형 (21,392배)</h3>
+    <figure>
+        <img src="../assets/img/projects/p1/eda_mastercategory.png" alt="masterCategory 분포">
+        <figcaption>Apparel 48.2%(21,392장)에 절반 가까이 집중. Home은 단 1장, Sporting Goods 25장 — 학습 불가능한 minority class</figcaption>
+    </figure>
+    <ul>
+        <li>상위 4개 카테고리(Apparel &middot; Accessories &middot; Footwear &middot; Personal Care)가 전체의 <strong>99.7%</strong>를 차지</li>
+        <li><code>articleType</code>은 143개 클래스 중 50개 미만 샘플인 73개 클래스가 long-tail을 형성</li>
+    </ul>
+    <p>
+        &rarr; <strong>articleType 50개 미만 클래스 제거</strong> 결정의 근거, 그 결과 masterCategory가 7&rarr;5, articleType이 143&rarr;68로 정리됨
+    </p>
+
+    <br>
+
+    <h3>2. baseColour — 46개 클래스, 상위 5색이 60% 차지</h3>
+    <figure>
+        <img src="../assets/img/projects/p1/eda_basecolour.png" alt="baseColour 분포 Top 15">
+        <figcaption>Black 9,727장 → Maroon 581장. 미표시된 31개 색상은 모두 500장 미만이며, 12개 색상은 50장 미만</figcaption>
+    </figure>
+
+    <br>
+
+    <h3>3. Season · Gender · Usage — 계절·용도도 편향</h3>
+    <figure>
+        <img src="../assets/img/projects/p1/eda_attributes.png" alt="Season/Gender/Usage 분포">
+        <figcaption>Summer 48% / Casual이 압도적, Party·Travel은 100장 미만 — usage F1 저하의 사전 신호</figcaption>
+    </figure>
+
+    <br>
+
+    <h3>EDA 요약 &mdash; 발견 사항과 처리 방법</h3>
+    <ul class="summary-list">
+        <li><strong>결측치 :</strong> 전체 0.78%(345행)로 매우 적음 &rarr; 단순 제거로 처리</li>
+        <li><strong>이미지-CSV 미스매치 :</strong> CSV에만 존재(5개), 이미지만 존재(22개) &rarr; 매칭 안 되는 행 제거</li>
+        <li><strong>해상도 :</strong> 모든 이미지가 80&times;60(small) 고정 &rarr; ImageNet pretrained 백본에 맞춰 224&times;224로 resize, ImageNet mean/std 정규화 적용. 단, 60&times;80 원본 정보량은 한계 (미세 색상 톤 구분 어려움)</li>
+        <li><strong>극심한 클래스 불균형 :</strong> <code>masterCategory</code> 최대/최소 비율 <strong>21,397배</strong>, 6개 타겟 모두 long-tail &rarr; <code>label_smoothing=0.1</code> + <code>masterCategory</code> 기준 stratified split(70/15/15)으로 대응</li>
+        <li><strong>Long-tail color :</strong> 46개 색상 중 12개가 학습 샘플 50개 미만 &rarr; 학습 자체가 어려운 minority 클래스 다수 (실제 학습 결과에서 color F1=0.37로 확인됨)</li>
+        <li><strong>라벨 모호성 :</strong> Beige vs Cream, Off White vs White처럼 사람도 구분하기 어려운 쌍이 다수 &rarr; 모델이 정확히 학습해도 라벨 자체가 noisy해서 평가 metric에 ceiling 존재</li>
+    </ul>
 </section>
 
 <!-- Data Pipeline -->
@@ -278,7 +383,7 @@
     <h2>엔지니어링 노트</h2>
     <ul class="engineering-list">
         <li><strong>단일 출처 원칙(Single Source of Truth).</strong> <code>1_utils.TASK_KEYS</code>가 6-태스크 명세를 정의하고, <code>2_preprocess.COLUMN_TO_TASK</code>가 CSV 컬럼과 모델 키의 매핑을 담당한다. 모델·loss·dataset·trainer 모두 동일한 출처를 참조하여 문자열 중복 정의를 제거하였으며, 오타 발생 시 즉시 <code>KeyError</code>로 실패하도록 설계해 디버깅 효율을 확보하였다.</li>
-        <li><strong>모듈화된 파이프라인.</strong> 1~7번 파일(utils → preprocess → dataset → model → loss → scheduler → trainer)과 <code>main.py</code>로 책임을 분리하여, 각 모듈의 독립적 테스트가 가능하며 학습 컴포넌트의 자유로운 교체를 지원한다.</li>
+        <li><strong>모듈화된 파이프라인.</strong> 1~7번 파일(utils → preprocess → dataset → model → loss → scheduler → trainer)과 <code>main.py</code>로 책임을 분리하여, 각 모듈의 독립적 테스트가 가능하다.</li>
     </ul>
 </section>
 

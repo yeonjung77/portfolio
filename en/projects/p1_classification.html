@@ -47,7 +47,7 @@
             </div>
             <div class="metric-card">
                 <div class="metric-value">0.0002</div>
-                <div class="metric-label">EffNet vs ViT Δ</div>
+                <div class="metric-label">EffNet vs ViT &Delta;</div>
             </div>
             <div class="metric-card">
                 <div class="metric-value">43K / 6</div>
@@ -68,10 +68,10 @@
 <section class="project-section project-summary">
     <h2>Summary</h2>
     <ul class="summary-list">
-        <li><strong>Scope : </strong> A multi-task classifier predicting 6 attributes (category, subcategory, article type, color, season, usage) for 43,005 fashion product images with a single reproducible pipeline from EDA to inference</li>
-        <li><strong>Fair comparison : </strong> Trained EfficientNet-B3 and ViT-B/16 by varying only the backbone while keeping loss, optimizer, scheduler, augmentation, seed, and all other settings identical</li>
-        <li><strong>Key finding : </strong> The two models differ by only 0.0002 in avg_attr_f1 despite an 8&times; gap in backbone capacity; the performance ceiling stems from data quality and class imbalance, not the architecture</li>
-        <li><strong>Final choice : </strong> Selected EfficientNet-B3, which offers equivalent accuracy with 1/8 the parameters and meaningful gains in training and inference speed</li>
+        <li><strong>Scope : </strong> A multi-task classifier predicting 6 attributes (category, subcategory, article type, color, season, usage) for 43,005 fashion product images with a single reproducible pipeline from EDA to inference.</li>
+        <li><strong>Fair comparison : </strong> Trained EfficientNet-B3 and ViT-B/16 by varying only the backbone while keeping loss, optimizer, scheduler, augmentation, seed, and all other settings identical.</li>
+        <li><strong>Key finding : </strong> The two models differ by only 0.0002 in avg_attr_f1 despite an 8&times; gap in backbone capacity &mdash; the performance ceiling stems from data quality and class imbalance, not the architecture.</li>
+        <li><strong>Final choice : </strong> EfficientNet-B3 &mdash; equivalent accuracy at 1/8 the parameters, with meaningful gains in training and inference speed.</li>
     </ul>
 </section>
 
@@ -79,18 +79,123 @@
 <section class="project-section">
     <h2>Problem</h2>
     <p>
-        Build a model that predicts 6 attributes from low-resolution (60&times;80) fashion product images.
-        Real-world fashion retrieval and recommendation services need to extract multiple attributes per item.
+        Build a model that predicts 6 attributes from 60&times;80 low-resolution fashion product images.
+        Fashion search and recommendation services typically need to extract multiple attributes per product.
     </p>
-    <div class="callout">
-        <strong>Challenges identified during EDA:</strong>
-        <ul>
-            <li>Severe class imbalance &mdash; <code>masterCategory</code> ratio max/min = <strong>21,397&times;</strong></li>
-            <li>Long-tailed colors &mdash; 12 / 46 color classes have fewer than 50 training samples</li>
-            <li>Label ambiguity &mdash; humans can't reliably distinguish Beige vs Cream, Off White vs White</li>
-            <li>Low resolution &mdash; 60&times;80 pixels constrains fine color-tone discrimination</li>
-        </ul>
-    </div>
+</section>
+
+<!-- EDA -->
+<section class="project-section">
+    <h2>Data Exploration (EDA)</h2>
+
+    <h3>Dataset overview</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>Source</td><td>Fashion Product Images (Small) &mdash; Kaggle, CC0</td></tr>
+            <tr><td>Total rows</td><td>44,424</td></tr>
+            <tr><td>Image resolution</td><td>80&times;60 pixels (fixed, JPEG)</td></tr>
+            <tr><td>Metadata columns</td><td><code>id, gender, masterCategory, subCategory, articleType, baseColour, season, year, usage, productDisplayName</code></td></tr>
+            <tr><td>Model targets</td><td>6 attributes &mdash; category, subcategory, articleType, color, season, usage</td></tr>
+        </tbody>
+    </table>
+
+    <br>
+
+    <h3>6 attributes &amp; class examples</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Attribute</th><th>Meaning</th><th>Classes (raw)</th><th>Example classes</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>masterCategory</code></td>
+                <td>Top-level category</td>
+                <td>7</td>
+                <td>Apparel, Accessories, Footwear, Personal Care, Free Items, Sporting Goods, Home</td>
+            </tr>
+            <tr>
+                <td><code>subCategory</code></td>
+                <td>Mid-level category</td>
+                <td>45</td>
+                <td>Topwear, Bottomwear, Bags, Watches, Shoes, Innerwear, Jewellery, Sandal &hellip;</td>
+            </tr>
+            <tr>
+                <td><code>articleType</code></td>
+                <td>Item type</td>
+                <td>143</td>
+                <td>T-shirts, Shirts, Jeans, Watches, Casual Shoes, Sandals, Kurtas, Handbags &hellip;</td>
+            </tr>
+            <tr>
+                <td><code>baseColour</code></td>
+                <td>Primary color</td>
+                <td>46</td>
+                <td>Black, White, Blue, Brown, Grey, Red, Pink, Navy Blue, Green &hellip;</td>
+            </tr>
+            <tr>
+                <td><code>season</code></td>
+                <td>Worn season</td>
+                <td>4</td>
+                <td>Summer, Fall, Winter, Spring</td>
+            </tr>
+            <tr>
+                <td><code>usage</code></td>
+                <td>Usage context</td>
+                <td>8</td>
+                <td>Casual, Sports, Ethnic, Formal, Smart Casual, Party, Travel, Home</td>
+            </tr>
+            <tr class="row-highlight">
+                <td colspan="4" style="text-align:left;">
+                    <strong>Reference columns (not model targets)</strong><br>
+                    &middot; <code>gender</code> (5 &mdash; Men, Women, Unisex, Boys, Girls)<br>
+                    &middot; <code>year</code> (collected year, 2007&ndash;2019)<br>
+                    &middot; <code>productDisplayName</code> (product name text)
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <br>
+
+    <h3>1. masterCategory &mdash; extreme imbalance (21,392&times;)</h3>
+    <figure>
+        <img src="../../assets/img/projects/p1/eda_mastercategory.png" alt="masterCategory distribution">
+        <figcaption>Apparel concentrates nearly half (48.2%, 21,392 images). Home has only 1 image, Sporting Goods 25 &mdash; minority classes effectively impossible to learn.</figcaption>
+    </figure>
+    <ul>
+        <li>The top 4 categories (Apparel &middot; Accessories &middot; Footwear &middot; Personal Care) account for <strong>99.7%</strong> of the data.</li>
+        <li>For <code>articleType</code>, 73 of 143 classes have fewer than 50 samples, forming a long tail.</li>
+    </ul>
+    <p>
+        &rarr; This justified the decision to <strong>remove articleType classes with fewer than 50 samples</strong>; as a result, masterCategory shrank from 7&rarr;5 and articleType from 143&rarr;68.
+    </p>
+
+    <br>
+
+    <h3>2. baseColour &mdash; 46 classes, top 5 colors cover 60%</h3>
+    <figure>
+        <img src="../../assets/img/projects/p1/eda_basecolour.png" alt="baseColour distribution Top 15">
+        <figcaption>From Black (9,727) down to Maroon (581). 31 unlisted colors each have fewer than 500 images, and 12 of them have fewer than 50.</figcaption>
+    </figure>
+
+    <br>
+
+    <h3>3. Season &middot; Gender &middot; Usage &mdash; also skewed</h3>
+    <figure>
+        <img src="../../assets/img/projects/p1/eda_attributes.png" alt="Season/Gender/Usage distributions">
+        <figcaption>Summer 48% / Casual dominates usage; Party and Travel each have &lt;100 samples &mdash; an early signal for the weak usage F1.</figcaption>
+    </figure>
+
+    <br>
+
+    <h3>EDA summary &mdash; findings and how they were handled</h3>
+    <ul class="summary-list">
+        <li><strong>Missing values :</strong> only 0.78% (345 rows) &rarr; handled by simple removal.</li>
+        <li><strong>CSV&harr;image mismatch :</strong> 5 rows in CSV without images, 22 images without CSV entries &rarr; unmatched rows dropped.</li>
+        <li><strong>Resolution :</strong> all images fixed at 80&times;60 (small) &rarr; resized to 224&times;224 with ImageNet mean/std normalization for pretrained backbones. That said, the underlying 60&times;80 information is limited (subtle color tones are hard to distinguish).</li>
+        <li><strong>Extreme class imbalance :</strong> <code>masterCategory</code> max/min ratio <strong>21,397&times;</strong>, and all 6 targets are long-tailed &rarr; addressed with <code>label_smoothing=0.1</code> and a stratified split (70/15/15) on <code>masterCategory</code>.</li>
+        <li><strong>Long-tail color :</strong> 12 of 46 colors have fewer than 50 training samples &rarr; many minority classes are essentially untrainable (confirmed later by color F1=0.37).</li>
+        <li><strong>Label ambiguity :</strong> pairs like Beige vs Cream, Off White vs White are hard even for humans &rarr; even a perfect model would still hit a metric ceiling due to label noise.</li>
+    </ul>
 </section>
 
 <!-- Data Pipeline -->
@@ -101,13 +206,13 @@
     <table class="result-table">
         <thead><tr><th>Step</th><th>Rows</th><th>Change</th></tr></thead>
         <tbody>
-            <tr><td>Raw <code>styles.csv</code></td><td>44,424</td><td>&mdash;</td></tr>
-            <tr><td>Drop missing labels</td><td>44,079</td><td>-345</td></tr>
+            <tr><td>Original <code>styles.csv</code></td><td>44,424</td><td>&mdash;</td></tr>
+            <tr><td>Drop rows with missing labels</td><td>44,079</td><td>-345</td></tr>
             <tr><td>Drop rows without images</td><td>44,074</td><td>-5</td></tr>
-            <tr><td><code>articleType</code> &lt; 50 classes dropped</td><td><strong>43,005</strong></td><td>-1,069</td></tr>
+            <tr><td>Drop <code>articleType</code> classes with &lt;50 samples</td><td><strong>43,005</strong></td><td>-1,069</td></tr>
         </tbody>
     </table>
-    <p class="muted">Lost 1,419 rows (3.19%) total, yielding a clean trainable dataset. Final class counts: 5 categories, 30 subcategories, 68 article types, 46 colors, 4 seasons, 7 usages.</p>
+    <p class="muted">A total of 1,419 rows (3.19%) were dropped, leaving a clean trainable set. Final class counts: 5 categories, 30 subcategories, 68 article types, 46 colors, 4 seasons, 7 usages.</p>
 
     <h3>Split (Stratified by <code>masterCategory</code>, seed=42)</h3>
     <table class="result-table">
@@ -120,9 +225,9 @@
 
 <!-- Method -->
 <section class="project-section">
-    <h2>Method</h2>
+    <h2>Training Method</h2>
 
-    <h3>6-Head Multi-task Architecture</h3>
+    <h3>6-Head multi-task architecture</h3>
     <pre class="code-block">Image [B, 3, 224, 224]
   → Backbone (timm)        → features [B, feature_dim]
   → Dropout(0.3)
@@ -138,18 +243,18 @@
       + 0.5 × mean(L_subcategory, L_articletype, L_color, L_season, L_usage)</pre>
     <p>All 6 heads use <code>CrossEntropyLoss(label_smoothing=0.1)</code>.</p>
 
-    <h3>Training setup (identical for both models)</h3>
+    <h3>Training settings (identical for both models)</h3>
     <table class="result-table">
         <tbody>
             <tr><td>Optimizer</td><td>AdamW (backbone lr 1e-4, head lr 1e-3, weight_decay 0.01)</td></tr>
             <tr><td>Scheduler</td><td>CosineAnnealingLR (T_max=30, eta_min=1e-6)</td></tr>
-            <tr><td>Early Stopping</td><td>patience 5, monitor <code>avg_attr_f1</code> (category saturates at 99% in 1-2 epochs)</td></tr>
+            <tr><td>Early Stopping</td><td>patience 5, based on <code>avg_attr_f1</code> (category saturates to 99% within 1~2 epochs)</td></tr>
             <tr><td>Augmentation (train)</td><td>RandomResizedCrop + Flip + ColorJitter + ImageNet Normalize</td></tr>
             <tr><td>Augmentation (val/test)</td><td>Resize 256 → CenterCrop 224</td></tr>
-            <tr><td>Hyperparams</td><td>batch_size 32, epochs 30, image 224&times;224, seed 42</td></tr>
+            <tr><td>Shared hyperparams</td><td>batch_size 32, epochs 30, image 224&times;224, seed 42</td></tr>
         </tbody>
     </table>
-    <p class="muted">Only the backbone differs; all other settings are held constant so that any performance difference stems purely from architecture.</p>
+    <p class="muted">Only the backbone differs; everything else is held identical so any performance gap can be attributed purely to architecture.</p>
 </section>
 
 <!-- Results -->
@@ -173,51 +278,50 @@
             <tr class="row-highlight"><td><strong>Avg Attribute F1</strong></td><td>0.6779</td><td><strong>0.6781</strong></td><td>ViT (+0.0002)</td></tr>
         </tbody>
     </table>
-    <p class="muted">Tasks split exactly <strong>3:3</strong> between the two backbones, and the average difference is a mere 0.03 percentage points.</p>
+    <p class="muted">Task wins split exactly <strong>3:3</strong>, and the average gap is just 0.03%p.</p>
 
-    <h3>Training curves</h3>
+    <h3>Learning curves</h3>
     <figure>
-        <img src="../../assets/img/projects/p1/effnet_training_curves.png" alt="EfficientNet training curves">
-        <figcaption>EfficientNet-B3 — train/val loss · validation metrics · cosine LR schedule</figcaption>
+        <img src="../../assets/img/projects/p1/effnet_training_curves.png" alt="EfficientNet learning curves">
+        <figcaption>EfficientNet-B3 &mdash; train/val loss, validation metrics, cosine LR schedule.</figcaption>
     </figure>
 
     <h3>Per-task F1 (EfficientNet-B3)</h3>
     <figure>
-        <img src="../../assets/img/projects/p1/effnet_task_f1.png" alt="Per-task F1 scores">
-        <figcaption>Category nearly saturated. Color and usage are the weak tasks.</figcaption>
+        <img src="../../assets/img/projects/p1/effnet_task_f1.png" alt="Per-task F1">
+        <figcaption>Category is nearly saturated. Color and Usage are the weakest tasks.</figcaption>
     </figure>
 </section>
 
 <!-- Key Insight -->
 <section class="project-section project-insight">
-    <h2>Insight</h2>
+    <h2>Insights</h2>
 
     <h3>Class imbalance directly determines per-class F1</h3>
     <figure>
-        <img src="../../assets/img/projects/p1/samples_vs_f1.png" alt="Train samples vs test F1">
-        <figcaption>X-axis: train samples per class (log) · Y-axis: test macro F1 per class · red &times; markers indicate F1 &lt; 0.05.</figcaption>
+        <img src="../../assets/img/projects/p1/samples_vs_f1.png" alt="Training samples vs Test F1">
+        <figcaption>X: per-class training samples (log) · Y: per-class test macro F1 · red &times; marks F1 &lt; 0.05.</figcaption>
     </figure>
     <p>
-        The pattern is clear in the <code>color</code> scatter plot: <strong>all 12 classes with fewer than 50 training samples collapse to F1 ≈ 0</strong>,
-        and the same pattern holds for <code>usage</code> (Party = 18, Travel = 15 training samples).
-        When training data is sufficient the model performs reliably, but in data-scarce classes no architectural change can compensate.
+        The <code>color</code> scatter shows the pattern clearly: <strong>all 12 classes with fewer than 50 training samples converge to F1 ≈ 0</strong>,
+        and the same pattern appears in <code>usage</code> (Party with 18 samples, Travel with 15).
+        Performance is stable when training data is sufficient; when it isn't, no architectural change can compensate.
     </p>
 
     <ol class="evidence-list">
         <li>
-            <strong>EfficientNet and ViT differ by only 0.0002 in avg_attr_f1.</strong>
-            If the backbone architecture were the deciding factor, an 8&times; parameter increase (10.94M → 85.92M) should yield a meaningful gain.
+            <strong>EfficientNet vs ViT differ by only 0.0002 in avg_attr_f1.</strong>
+            If backbone architecture were decisive, an 8&times; capacity increase (10.94M → 85.92M) would have produced a meaningful gap.
         </li>
         <li>
-            <strong>The color weakness appears identically across both backbones</strong> (0.37 vs 0.40).
-            Architecture changes alone cannot resolve this limitation.
+            <strong>color's weakness shows up identically on both backbones</strong> (0.37 vs 0.40) &mdash; the weakness can't be resolved by swapping architectures alone.
         </li>
     </ol>
 
-    <h3>Confusion patterns support label ambiguity</h3>
+    <h3>Confusion patterns also support label ambiguity</h3>
     <figure>
         <img src="../../assets/img/projects/p1/wrong_predictions.png" alt="High-confidence wrong predictions">
-        <figcaption>High-confidence misclassifications on color. Most are pairs humans also find ambiguous (Beige vs Cream, Off White vs White) — a label-noise ceiling.</figcaption>
+        <figcaption>High-confidence wrong predictions in the color task. Most are pairs that even humans find tricky (Beige vs Cream, Off White vs White) &mdash; the label-noise wall.</figcaption>
     </figure>
 </section>
 
@@ -227,55 +331,55 @@
 
     <figure>
         <img src="../../assets/img/projects/p1/compare_curves.png" alt="EfficientNet vs ViT learning curves">
-        <figcaption>Overlaid training curves of the two models. ViT, with 8&times; more parameters, tracks EffNet's val loss almost identically.</figcaption>
+        <figcaption>Learning curves overlaid. Despite ViT having 8&times; more parameters, its val loss trajectory is nearly identical to EffNet's.</figcaption>
     </figure>
 
     <figure>
         <img src="../../assets/img/projects/p1/compare_f1_bar.png" alt="Per-task F1 comparison">
-        <figcaption>Per-task F1 comparison. ViT shows a marginal edge on global-pattern tasks like color and category, while EffNet edges ahead on shape-based subcategory. Average difference is at noise level.</figcaption>
+        <figcaption>Per-task F1 comparison. ViT has a slight edge on color and category (global patterns), EffNet on subcategory (shape-based). The average gap is at noise level.</figcaption>
     </figure>
 
-    <h3>Hypothesis on the micro-differences</h3>
+    <h3>Hypothesis for the small task-level gaps</h3>
     <ul>
-        <li><strong>EffNet leads in subcategory (+0.035)</strong> — CNN's local features favor recognizing garment <em>shape</em>.</li>
-        <li><strong>ViT leads in color (+0.030) and category_f1 (+0.020)</strong> — Transformer's global self-attention better captures <em>holistic</em> patterns like overall color or category.</li>
+        <li><strong>EffNet wins on subcategory (+0.035)</strong> &mdash; CNN's local features are well suited to recognizing garment <em>shape</em>.</li>
+        <li><strong>ViT wins on color (+0.030) and category_f1 (+0.020)</strong> &mdash; Transformer's global self-attention helps with <em>global</em> patterns like color tone and category.</li>
     </ul>
 
     <h3>Final choice :  EfficientNet-B3</h3>
     <p>
-        Equivalent performance, parameters at 1/8 the scale, and an advantage in both training and inference speed.
-        Since ViT's additional capacity does not translate into improved generalization on this dataset,
+        Equivalent accuracy at 1/8 the parameters, with advantages in both training and inference speed.
+        Since ViT's extra capacity did not translate into better generalization on this dataset,
         EfficientNet is the more practical choice.
     </p>
 </section>
 
 <!-- Val/Test gap -->
 <section class="project-section">
-    <h2>Generalization gap — inference re-evaluation</h2>
+    <h2>Generalization Gap &mdash; Inference Re-evaluation</h2>
     <p>
-        Compared <code>best_val_metrics</code> (validation result at the best checkpoint during training) with <code>test_metrics</code> (held-out test set results).
+        Compared <code>best_val_metrics</code> (val results at the best epoch) with <code>test_metrics</code> (held-out test results).
     </p>
     <table class="result-table">
-        <thead><tr><th>Metric</th><th>EffNet (val&rarr;test)</th><th>ViT (val&rarr;test)</th><th>Note</th></tr></thead>
+        <thead><tr><th>Metric</th><th>EffNet (val→test)</th><th>ViT (val→test)</th><th>Interpretation</th></tr></thead>
         <tbody>
-            <tr><td>avg_attr_f1</td><td>-0.0198</td><td>-0.0184</td><td>Nearly identical gap</td></tr>
-            <tr><td>usage_f1</td><td><strong>-0.0795 ⚠️</strong></td><td><strong>-0.0827 ⚠️</strong></td><td>Both unstable (Party 18, Travel 15)</td></tr>
-            <tr><td>category_f1</td><td>+0.0105</td><td>+0.0261</td><td>Test &gt; val (split variance, not overfit)</td></tr>
+            <tr><td>avg_attr_f1</td><td>-0.0198</td><td>-0.0184</td><td>Almost identical gap for both models</td></tr>
+            <tr><td>usage_f1</td><td><strong>-0.0795 ⚠️</strong></td><td><strong>-0.0827 ⚠️</strong></td><td>Both unstable (Party 18, Travel 15 samples)</td></tr>
+            <tr><td>category_f1</td><td>+0.0105</td><td>+0.0261</td><td>Test higher than val &mdash; not overfit, just split variance</td></tr>
         </tbody>
     </table>
     <p>
-        <strong>The generalization gap is nearly identical across the two models.</strong>
-        If the backbone influenced robustness, the ViT with 8&times; the capacity should have shown either greater overfitting or better generalization,
-        yet neither pattern emerged. The main source of variance is the data — specifically the distributional instability of minority-class tasks.
+        <strong>The generalization gap is nearly identical for both models.</strong>
+        If the backbone affected robustness, the 8&times;-larger ViT would have shown either more overfitting or better generalization &mdash; neither materialized.
+        The fluctuations come primarily from data, especially the distribution instability of minority-class tasks.
     </p>
 </section>
 
 <!-- Engineering -->
 <section class="project-section">
-    <h2>Engineering notes</h2>
+    <h2>Engineering Notes</h2>
     <ul class="engineering-list">
-        <li><strong>Single source of truth.</strong> <code>1_utils.TASK_KEYS</code> defines the 6-task specification and <code>2_preprocess.COLUMN_TO_TASK</code> handles the mapping between CSV columns and model keys. The model, loss, dataset, and trainer all reference the same source, eliminating duplicated string definitions and ensuring that typos immediately fail with a <code>KeyError</code> for efficient debugging.</li>
-        <li><strong>Modular pipeline.</strong> Responsibilities are split across files 1–7 (utils → preprocess → dataset → model → loss → scheduler → trainer) and <code>main.py</code>, enabling each module to be tested independently and learning components to be swapped freely.</li>
+        <li><strong>Single Source of Truth.</strong> <code>1_utils.TASK_KEYS</code> defines the 6-task spec, and <code>2_preprocess.COLUMN_TO_TASK</code> maps CSV columns to model keys. The model, loss, dataset, and trainer all reference these single sources, eliminating duplicated string literals and surfacing typos as immediate <code>KeyError</code>s for faster debugging.</li>
+        <li><strong>Modular pipeline.</strong> Responsibilities are split across files 1~7 (utils → preprocess → dataset → model → loss → scheduler → trainer) plus <code>main.py</code>, so each module can be tested independently.</li>
     </ul>
 </section>
 
@@ -284,7 +388,7 @@
 <footer id="contact" class="footer">
     <div class="section-gray-inner">
         <h2 class="footer-title">Contact</h2>
-        <p class="footer-message">Looking for career opportunities in Fashion AI, Computer Vision, and ML Engineering.</p>
+        <p class="footer-message">Looking for opportunities in Fashion AI, Computer Vision, and ML Engineering.</p>
         <div class="hero-links">
             <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
             <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>

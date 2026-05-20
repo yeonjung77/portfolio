@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2. 패션 이미지 파싱 · 원연정</title>
+    <meta name="description" content="DeepFashion-MultiModal 12,694장으로 파싱 + 키포인트 + 속성 3-태스크 멀티태스크 학습 — SegFormer vs DeepLabV3+ 공정 비교">
+
+    <!-- Pretendard 한글 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/project.css">
+</head>
+<body class="project-page lang-ko">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="../en/projects/p2_parsing.html">EN</a>
+                <a href="p2_parsing.html" class="active">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P2</span> &middot; <span>CV Basic</span>
+        </div>
+        <h1>패션 이미지 파싱</h1>
+        <p class="project-hero-tagline">
+            DeepFashion-MultiModal 12,694장에 대해 24-class 파싱, 21 키포인트, 26-dim 속성을 단일 모델로 동시 예측하는 3-태스크 멀티태스크 모델을 구축하고,<br>
+            SegFormer-B3와 DeepLabV3+ ResNet-101을 동일한 학습 조건에서 비교 평가하였다.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">0.538</div>
+                <div class="metric-label">Parsing mIoU</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">0.819</div>
+                <div class="metric-label">Keypoint PCK@0.2</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">8 / 8</div>
+                <div class="metric-label">SegFormer vs DeepLab 우위</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">12.7K / 3</div>
+                <div class="metric-label">이미지 / 태스크</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">PyTorch</span>
+            <span class="tag">transformers</span>
+            <span class="tag">SegFormer-B3</span>
+            <span class="tag">DeepLabV3+ R101</span>
+            <span class="tag">Multi-task Learning</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>구축 대상 : </strong> DeepFashion-MultiModal 12,694장에 대해 픽셀 단위 파싱(24-class), 키포인트 검출(21 keypoints), 멀티 라벨 속성 분류(26-dim)를 단일 백본 위에서 3-Head로 동시 학습하는 멀티태스크 모델.</li>
+        <li><strong>3-Phase 학습 전략 : </strong> 1. SegFormer Parsing-only baseline → 2. SegFormer 멀티태스크 → 3. DeepLabV3+ 멀티태스크. 두 가지 핵심 비교 축(Single vs Multi-task / CNN vs Transformer)을 정량 분석</li>
+        <li><strong>최종 모델 선택 : </strong> SegFormer-B3 : 8개 metric 전부 SegFormer가 우위(mIoU −0.199, PCK −0.208, F1 −0.079), 학습 속도도 2.6배 빠름</li>
+    </ul>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>문제 정의</h2>
+    <p>
+        패션 이미지에서 픽셀 단위 의류 영역 분할(파싱), 인체 관절 위치 추정(키포인트), 의류 속성 분류를 단일 모델로 동시에 수행한다.<br>
+        DensePose annotation 미사용 : DeepFashion-MultiModal에 DensePose surface 좌표 맵도 제공되지만, 본 프로젝트의 메인 태스크인 24-class parsing이 이미 픽셀 단위 정답을 직접 제공하므로 입력은 RGB 3채널로 단순화했다.
+    </p>
+
+</section>
+
+<!-- EDA -->
+<section class="project-section">
+    <h2>데이터 탐색 (EDA)</h2>
+
+    <h3>데이터셋 개요</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>출처</td><td>DeepFashion-MultiModal</td></tr>
+            <tr><td>원본 이미지</td><td>44,096장 (750&times;1101 RGB, 고해상도 전신)</td></tr>
+            <tr><td>정밀 파싱 마스크</td><td>12,701장 (전신 컷에만 24-class annotation)</td></tr>
+            <tr><td>키포인트</td><td>12,702장 (21 keypoints + visibility 0=visible / 1=occluded / 2=missing)</td></tr>
+            <tr><td>속성 라벨</td><td>42,544건 (Shape 12 + Fabric 7 + Pattern 7 = 26-dim multi-label)</td></tr>
+            <tr><td>모델 입력 크기</td><td>512&times;384 (가이드 표준)</td></tr>
+            <tr><td>모델 출력 (3-Head)</td><td>parsing [B, 24, H, W] / keypoint [B, 21, 3] / attribute [B, 26]</td></tr>
+        </tbody>
+    </table>
+
+    <br>
+
+    <h3>4-modality 교집합 — 학습 가능 데이터 12,694장</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Modality</th><th>보유</th><th>누락 (이미지 기준)</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>이미지 (.jpg)</td><td>44,096</td><td>—</td></tr>
+            <tr><td>파싱 마스크 (*_segm.png)</td><td>12,701</td><td>31,395</td></tr>
+            <tr><td>키포인트 (loc + vis)</td><td>12,702</td><td>31,394</td></tr>
+            <tr><td>속성 (shape + fabric + pattern)</td><td>42,544</td><td>1,552</td></tr>
+            <tr class="row-highlight"><td><strong>&cap; 4-modality 교집합</strong></td><td><strong>12,694 ★</strong></td><td>—</td></tr>
+        </tbody>
+    </table>
+
+    <br>
+
+    <h3>1. 파싱 클래스 — 극심한 long-tail (background 77.37%)</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/eda_pixel_ratio.png" alt="24 파싱 클래스별 픽셀 비율">
+        <figcaption>background가 픽셀의 77.37%를 점유. belt / bag / glove / scarf 등 16개 클래스가 1% 미만, 최대/최소 비율 7,737배</figcaption>
+    </figure>
+    <ul>
+        <li>대용량 클래스(픽셀 &gt; 2%): background, hat, hair, upper_clothes, skirt, right_arm, right_leg, face</li>
+        <li>극소수 클래스(픽셀 &lt; 0.05%): belt, bag, glove, socks, scarf, necklace, rompers, eyewear</li>
+    </ul>
+    <p>
+        &rarr; mIoU는 24 클래스 평균이므로 소수 클래스가 학습 못 받으면 평균이 끌어내려진다. 실제로 학습 후 bag/socks/rompers/eyewear 4개 클래스가 정확히 IoU=0.0000으로 나타나 mIoU −0.167 견인했다.
+    </p>
+
+    <br>
+
+    <h3>2. 키포인트 visibility 분포 (93.65% visible)</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/eda_kp_visibility.png" alt="21 keypoint visibility 분포">
+        <figcaption>266,574개 keypoint 중 visible 93.65% / occluded 5.76% / missing 0.59%. 하반신 ankle/toe 영역의 occluded 비율이 상대적으로 높음</figcaption>
+    </figure>
+    <p>&rarr; 각 keypoint에는 <strong>visibility 값 0/1/2</strong>가 함께 라벨링되어 있고, 값에 따라 학습 loss와 평가 PCK에 어떻게 쓸지가 달라진다.</p>
+    <table class="result-table">
+        <thead><tr><th>visibility</th><th>의미</th><th>학습 loss</th><th>평가 PCK</th></tr></thead>
+        <tbody>
+            <tr><td>0</td><td>visible &mdash; 그대로 잘 보임</td><td>✅ 사용</td><td>✅ 평가</td></tr>
+            <tr><td>1</td><td>occluded &mdash; 일부 가려졌지만 위치는 짐작 가능</td><td>✅ 사용</td><td>❌ 제외</td></tr>
+            <tr><td>2</td><td>missing &mdash; 이미지 밖이라 좌표가 placeholder</td><td>❌ 제외</td><td>❌ 제외</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">
+        가려진 점(occluded)은 좌표가 어디쯤일지 추정 가능하므로 학습 신호로는 쓰되, 평가에서는 제외했다. <br>
+        이미지 밖(missing)은 좌표 자체가 의미 없어 학습·평가 모두에서 제외했다.
+    </p>
+
+    <br>
+
+    <h3>3. 26-dim 속성 — Multi-label binary 분포</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/eda_shape_distribution.png" alt="Shape 12개 attribute별 카테고리 분포">
+        <figcaption>Shape 12개 attribute 각각의 카테고리 비율(stacked bar). attribute마다 카테고리 체계가 다르므로 정규화 비율로 통일. <br><code>sleeve_length</code>·<code>lower_length</code>·<code>neckline</code> 등은 다양한 카테고리에 분포되지만 <code>socks</code>·<code>hat</code>·<code>glasses</code>·<code>ring</code>은 한 값이 90% 이상 차지하는 극단 불균형</figcaption>
+    </figure>
+    <figure>
+        <img src="../assets/img/projects/p2/eda_fabric_pattern.png" alt="Fabric / Pattern 카테고리별 빈도 분포">
+        <figcaption>Fabric은 <code>cotton</code>이 압도적 다수, Pattern은 <code>pure_color</code>가 압도적 다수. 두 축 모두 long-tail 구조</figcaption>
+    </figure>
+
+    <br>
+
+    <h3>4. 샘플 시각화 — annotation alignment 검증</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/eda_overlay.png" alt="이미지 + 파싱 + keypoint 오버레이">
+        <figcaption>이미지 + 파싱 마스크 + 21 keypoint 동시 오버레이. 좌/우 keypoint 명확히 구분 → HorizontalFlip 시 좌/우 swap 정책 결정 근거</figcaption>
+    </figure>
+
+    <br>
+
+    <h3>EDA 요약 &mdash; 발견 사항과 처리 방법</h3>
+    <ul class="summary-list">
+        <li><strong>데이터 가용성 :</strong> 원본 이미지 44,096장 중 정밀 파싱 마스크가 있는 12.6K장만 학습 대상. 70/15/15 split</li>
+        <li><strong>파싱 클래스 불균형 :</strong> 24개 클래스 중 background가 픽셀의 <strong>77.37%</strong> 단독 점유, 16개 클래스가 1% 미만 (최대/최소 비율 7,737배)</li>
+        <li><strong>키포인트 visibility :</strong> 266,574개 keypoint 중 visible 93.65% / occluded 5.76% / missing 0.59%. 하반신 ankle/toe가 occluded 비율 높음 (드레스/치마 영향)</li>
+        <li><strong>속성 long-tail :</strong> 26-dim 중 Pattern <code>pure_color</code>·Fabric <code>cotton</code> 압도, navel/ring 같은 일부 Shape attribute는 매우 드뭄</li>
+        <li><strong>Annotation alignment :</strong> 이미지·파싱·키포인트가 같은 좌표를 공유하므로 augmentation은 똑같이 적용(좌우 뒤집을 때는 왼/오른쪽 라벨도 같이 swap, 마스크 크기 조정은 클래스 ID 보존을 위해 NEAREST 보간 사용)</li>
+    </ul>
+</section>
+
+<!-- Data Pipeline -->
+<section class="project-section">
+    <h2>데이터와 전처리</h2>
+
+    <h3>파이프라인 산출물</h3>
+    <table class="result-table">
+        <thead><tr><th>단계</th><th>입력</th><th>출력</th></tr></thead>
+        <tbody>
+            <tr><td>1. 파싱 마스크 수집</td><td>segm/*_segm.png</td><td>{filename: path} 12,701개</td></tr>
+            <tr><td>2. 키포인트 병합</td><td>keypoints_loc.txt + keypoints_vis.txt</td><td>{filename: [21, 3]} 12,702개</td></tr>
+            <tr><td>3. 26-dim 속성 인코딩</td><td>shape / fabric / pattern .txt 3개</td><td>{filename: [26]} binary 12,694개</td></tr>
+            <tr><td>4. 4-modality 매칭 검증</td><td>이미지 ∩ 파싱 ∩ 키포인트 ∩ 속성</td><td>sorted list 12,694장</td></tr>
+            <tr><td>5. 70/15/15 split (seed=42)</td><td>12,694장</td><td>train 8,886 / val 1,904 / test 1,904</td></tr>
+        </tbody>
+    </table>
+
+    <h3>26-dim 속성 인코딩 규약</h3>
+    <table class="result-table">
+        <thead><tr><th>슬라이스</th><th>차원</th><th>인코딩</th></tr></thead>
+        <tbody>
+            <tr><td><code>[0:12]</code> Shape</td><td>12</td><td>각 column 값 ≠ 0 (NA 아님) → 1</td></tr>
+            <tr><td><code>[12:19]</code> Fabric</td><td>7</td><td>upper / lower / outer 3 position 중 하나라도 해당 카테고리 → 1, NA(7) 제외</td></tr>
+            <tr><td><code>[19:26]</code> Pattern</td><td>7</td><td>Fabric과 동일 규약</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Augmentation</h3>
+    <table class="result-table">
+        <thead><tr><th>변환</th><th>image</th><th>mask</th><th>keypoint</th></tr></thead>
+        <tbody>
+            <tr><td>Resize</td><td>BILINEAR</td><td><strong>NEAREST 필수</strong></td><td>좌표 스케일</td></tr>
+            <tr><td>HorizontalFlip (p=0.5)</td><td>flip</td><td>flip + class swap 3쌍</td><td>x좌표 반전 + 인덱스 swap 9쌍</td></tr>
+            <tr><td>ColorJitter</td><td>적용</td><td>—</td><td>—</td></tr>
+            <tr><td>ImageNet Normalize</td><td>적용</td><td>—</td><td>—</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Method -->
+<section class="project-section">
+    <h2>학습 방법</h2>
+
+    <h3>3-Head 멀티태스크 구조 (백본 공통)</h3>
+    <pre class="code-block">Image [B, 3, 512, 384]
+  → Backbone           → feat [B, C, h, w]   (SegFormer: C=512, DeepLab: C=2048)
+  ├─ ParsingHead       Conv-BN-ReLU&times;2 + bilinear upsample → 1&times;1 Conv → [B, 24, H, W]
+  ├─ KeypointHead      GAP → FC(C,512) → ReLU → Dropout(0.3) → FC(512, 63) → [B, 21, 3]
+  └─ AttributeHead     GAP → Dropout(0.3) → FC(C,512) → ReLU → FC(512, 26)</pre>
+
+    <h3>Loss — Multi-task Weighted Sum</h3>
+    <pre class="code-block">L_total = 1.0 &times; L_parse  +  0.1 &times; L_kp  +  0.5 &times; L_attr</pre>
+    <ul>
+        <li><strong>Parsing</strong> &mdash; <code>CrossEntropyLoss</code>, pred/target spatial 다르면 <code>F.interpolate</code></li>
+        <li><strong>Keypoint</strong> &mdash; <code>MSELoss(reduction='none')</code> on (x, y), <strong><code>visibility==2 (missing)</code>만 마스킹 제외</strong></li>
+        <li><strong>Attribute</strong> &mdash; <code>BCEWithLogitsLoss</code></li>
+    </ul>
+    <p>&rarr; 멀티태스크 학습에서는 3개 loss를 더해 하나의 총 loss로 만든 뒤 한 번에 backward한다.</p>
+    <table class="result-table">
+        <thead><tr><th>Loss</th><th>다루는 값</th><th>학습 초기 크기</th></tr></thead>
+        <tbody>
+            <tr><td>Keypoint MSE</td><td>좌표 (픽셀 단위, 0~500)</td><td><strong>~ 24,000</strong></td></tr>
+            <tr><td>Parsing CE</td><td>클래스 확률</td><td>~ 0.3</td></tr>
+            <tr><td>Attribute BCE</td><td>0/1 확률</td><td>~ 0.7</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">
+        keypoint loss가 다른 두 loss보다 약 3~8만 배 크므로 keypoint에 0.1을 곱해 다른 loss들과 비슷한 크기로 맞춰서 3개 task가 균형 있게 학습되도록 했다
+    </p>
+
+    <h3>3-Phase 학습 전략</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Phase</th><th>모델</th><th>목적</th><th>lr (backbone)</th><th>Epochs</th><th>λ_parse / λ_kp / λ_attr</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Phase&nbsp;1</strong></td><td>SegFormer</td><td>Parsing-only baseline (Single vs Multi 비교용)</td><td>1e-4</td><td>20</td><td>1.0 / <strong>0.0</strong> / <strong>0.0</strong></td></tr>
+            <tr><td><strong>Phase&nbsp;2</strong></td><td>SegFormer</td><td>메인 결과물 (3-task 통합, Phase&nbsp;1 backbone 재활용)</td><td>5e-5</td><td>50</td><td>1.0 / 0.1 / 0.5</td></tr>
+            <tr><td><strong>Phase&nbsp;3</strong></td><td>DeepLab</td><td>CNN vs Transformer 비교 (Phase&nbsp;2과 동일 hyperparameter)</td><td>5e-5</td><td>50</td><td>1.0 / 0.1 / 0.5</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Phase&nbsp;1에서는 Baseline 모델을 만들기 위해 Single Task로 keypoint와 attribute의 loss 가중치(λ)를 0으로 두고 Parsing 하나만 학습했고, Phase&nbsp;2에서 Phhase 1의 backbone을 이어받아 3-task 학습했다.</p>
+
+    <h3>학습 설정 (Phase&nbsp;2/3 동일)</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>Optimizer</td><td>AdamW (backbone lr 5e-5, head lr 5e-4, weight_decay 0.01)</td></tr>
+            <tr><td>Scheduler</td><td>LinearWarmup(5ep, start_factor=0.1) + CosineAnnealingLR(eta_min=1e-6)</td></tr>
+            <tr><td>EarlyStopping</td><td>patience 7, mode='max', monitor <code>combined = 0.4&middot;mIoU + 0.4&middot;PCK + 0.2&middot;F1</code></td></tr>
+            <tr><td>Augmentation (train)</td><td>HorizontalFlip(좌/우 swap) + ColorJitter(이미지만) + ImageNet Normalize</td></tr>
+            <tr><td>Augmentation (val/test)</td><td>Resize + ToTensor + ImageNet Normalize (deterministic)</td></tr>
+            <tr><td>공통 하이퍼파라미터</td><td>batch_size 16, image 512&times;384, grad clip 1.0, seed 42</td></tr>
+            <tr><td>GPU</td><td>단일 H100 80GB</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Phase&nbsp;3는 Phase&nbsp;2과 백본 외 모든 변수를 통제해 성능 차이를 오직 백본 아키텍처 효과로만 해석 가능하게 했다.</p>
+</section>
+
+<!-- Results -->
+<section class="project-section">
+    <h2>결과</h2>
+
+    <h3>Test 메트릭 (best 모델 기준)</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Metric</th><th>Phase&nbsp;1 (Baseline, Single Parsing)</th><th>Phase&nbsp;2 (SegFormer)</th><th>Phase&nbsp;3 (DeepLab)</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>best epoch (combined)</td><td>19</td><td><strong>48</strong></td><td>46</td></tr>
+            <tr><td>Parsing mIoU</td><td><strong>0.6236</strong></td><td>0.5380</td><td>0.3394</td></tr>
+            <tr><td>Keypoint PCK@0.2</td><td>(N/A &mdash; λ_kp=0)</td><td><strong>0.8194</strong></td><td>0.6112</td></tr>
+            <tr><td>Attribute F1 (macro)</td><td>(N/A &mdash; λ_attr=0)</td><td>0.3986</td><td>0.3195</td></tr>
+            <tr class="row-highlight"><td><strong>combined</strong></td><td>0.3093</td><td><strong>0.6227</strong></td><td>0.4441</td></tr>
+            <tr><td>Pixel Accuracy</td><td>0.9806</td><td>0.9702</td><td>0.9440</td></tr>
+            <tr><td>학습 시간 (H100 단일)</td><td>55m 43s</td><td><strong>2h 18m 38s</strong></td><td>6h 1m 19s</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Plan 성공 기준 통과 여부</h3>
+    <table class="result-table">
+        <thead><tr><th>메트릭</th><th>목표</th><th>Phase&nbsp;1</th><th>Phase&nbsp;2</th><th>Phase&nbsp;3</th></tr></thead>
+        <tbody>
+            <tr><td>Parsing mIoU</td><td>&ge; 0.50</td><td>✅ +0.124</td><td>✅ +0.038</td><td>❌ −0.161</td></tr>
+            <tr><td>Keypoint PCK@0.2</td><td>&ge; 0.70</td><td>(N/A)</td><td>✅ <strong>+0.119</strong></td><td>❌ −0.089</td></tr>
+            <tr><td>Attribute F1 (macro)</td><td>&ge; 0.60</td><td>(N/A)</td><td>❌ −0.201</td><td>❌ −0.281</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Phase&nbsp;2의 모델은 3개 중 2개의 기준을 통과했다. Phase2에서 F1 수치는 소수 카테고리가 F1=0으로 끌어내린 결과로 해석할 수 있다.</p>
+
+    <h3>학습 곡선 (Phase&nbsp;2 SegFormer)</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/segformer_training_curves.png" alt="Phase&nbsp;2 학습 곡선">
+        <figcaption>SegFormer-B3 50 epoch — train/val loss · 3개 metric · combined · cosine LR 스케줄. EarlyStopping 미발동</figcaption>
+    </figure>
+
+    <h3>Phase&nbsp;2 — 24 클래스별 IoU</h3>
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/segformer_per_class_iou.png" alt="24 파싱 클래스별 IoU">
+        <figcaption>대용량 클래스는 IoU 0.7~0.99. 빨간색의 소수 클래스(belt/scarf/gloves/neckwear/eyewear) 중 4개가 IoU=0</figcaption>
+    </figure>
+
+    <h3>Phase&nbsp;2 — 21 keypoint별 PCK@0.2</h3>
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/segformer_per_keypoint_pck.png" alt="21 keypoint별 PCK">
+        <figcaption>상반신(어깨/팔/얼굴) PCK 0.93~0.97. 빨간색 강조한 하반신(hip/knee/ankle/toe) 0.62~0.81 — 드레스/치마 occlusion 영향</figcaption>
+    </figure>
+
+    <h3>Phase&nbsp;2 — 26 속성별 F1</h3>
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/segformer_attr_f1.png" alt="26 속성별 F1">
+        <figcaption>Shape(파랑) / Fabric(주황) / Pattern(초록) 그룹 색 구분.<br>Fabric의 leather/furry/chiffon/other, Pattern의 floral/striped/lattice/color_block/other 9개 카테고리가 F1=0 → macro 평균 견인</figcaption>
+    </figure>
+
+    <h3>Phase&nbsp;2 — Test 샘플 시각화</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/parsing_overlay.png" alt="파싱 오버레이 (test 5장)">
+        <figcaption>입력 / GT(Ground Truth) 파싱 / Pred 파싱. 24-class 컬러 오버레이로 alignment 시각 확인</figcaption>
+    </figure>
+    <figure>
+        <img src="../assets/img/projects/p2/keypoint_samples.png" alt="키포인트 예측 (test 5장)">
+        <figcaption>입력 / GT keypoint(초록=visible, 주황=occluded) / Pred keypoint(magenta)</figcaption>
+    </figure>
+</section>
+
+<!-- Key Insight -->
+<section class="project-section project-insight">
+    <h2>인사이트</h2>
+
+    <h3>1. 클래스 불균형이 mIoU의 ceiling이다</h3>
+    <table class="result-table">
+        <thead><tr><th>클래스</th><th>IoU</th><th>EDA 픽셀 비율</th></tr></thead>
+        <tbody>
+            <tr><td>bag / socks / rompers / eyewear</td><td><strong>0.0000 &times; 4개</strong></td><td>&lt; 0.05%</td></tr>
+            <tr><td>gloves / left_shoe</td><td>0.03</td><td>0.00~0.01%</td></tr>
+            <tr><td>scarf</td><td>0.13</td><td>0.03%</td></tr>
+            <tr><td>background / skirt / left_arm</td><td>0.99 / 0.87 / 0.86</td><td>77% / 3.7% / 0.8%</td></tr>
+        </tbody>
+    </table>
+    <p>
+        <strong>전체 파싱된 픽셀 중 &lt; 0.05%를 차지하는 소수 클래스 4개만으로 mIoU가 −0.167 떨어졌다</strong> mIoU 0.54로 나온 직접적인 원인은 데이터 long-tail으로 파악했다.
+        같은 패턴으로 Attribute F1=0.40 미달의 원인또한 9개의 Fabric/Pattern 카테고리가 F1=0이 되어 평균을 크게 끌어내렸다.
+    </p>
+
+    <h3>2. 키포인트는 신체 부위에 따라 정확도 차이가 크다</h3>
+    <table class="result-table">
+        <thead><tr><th>부위</th><th>예시 keypoint</th><th>PCK</th><th>이유</th></tr></thead>
+        <tbody>
+            <tr><td>상반신</td><td>어깨 / 팔꿈치 / 코</td><td><strong>0.95+</strong></td><td>거의 항상 잘 보임</td></tr>
+            <tr><td>하반신 발끝</td><td>toe</td><td>0.62</td><td>드레스·치마에 가려지는 경우 많음</td></tr>
+            <tr><td>귀</td><td>ear</td><td>0.7 근처</td><td>머리카락에 가려짐</td></tr>
+        </tbody>
+    </table>
+    <p class="muted"></p>상반신과 하반신의 차이는 모델 한계가 아니라 <strong>입력 이미지에서 보이지 않고 가려진 데이터의 한계</strong>로 파악된다.
+
+    <h3>3. 다른 task를 같이 학습하면 메인 task(파싱) 성능이 떨어진다 <span class="muted">— Negative transfer</span></h3>
+    <p>같은 backbone에 같은 학습 조건으로 Single-task vs 3-tasks 결과표 :</p>
+    <table class="result-table">
+        <thead><tr><th></th><th>Phase&nbsp;1<br>(parsing 단독)</th><th>Phase&nbsp;2<br>(3-task 동시)</th><th>Δ</th></tr></thead>
+        <tbody>
+            <tr><td>Parsing mIoU</td><td><strong>0.6236</strong></td><td>0.5380</td><td><strong>−0.086 ↓</strong></td></tr>
+            <tr><td>Pixel Accuracy</td><td>0.9806</td><td>0.9702</td><td>−0.010</td></tr>
+        </tbody>
+    </table>
+    <p>
+        Phase&nbsp;2 첫 epoch에서 mIoU가 0.62 → <strong>0.12로 급락</strong> → 50 epoch 학습해도 0.62를 회복 못 했다.
+        keypoint loss의 크기가 워낙 커 모델이 parsing보다 keypoint 쪽으로 학습 방향이 기울어졌다.
+    </p>
+    <p class="muted">
+        &rarr; 여러 task가 같은 backbone을 두고 서로 다른 방향으로 학습을 끌어당기는 <strong>negative transfer</strong>(부정적 전이)가 발생했다.
+</section>
+
+<!-- Comparison -->
+<section class="project-section">
+    <h2>모델 비교 — CNN vs Transformer</h2>
+
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/compare_metric_bar.png" alt="SegFormer vs DeepLab 핵심 metric 비교">
+        <figcaption>3개 핵심 metric (mIoU / PCK / F1) grouped bar. 8개 metric 전부 SegFormer 우위</figcaption>
+    </figure>
+
+    <h3>8개 metric 비교</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Metric</th><th>SegFormer-B3</th><th>DeepLab R101</th><th>Δ</th><th>Winner</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Parsing mIoU</td><td><strong>0.5380</strong></td><td>0.3394</td><td>−0.199</td><td>SegFormer</td></tr>
+            <tr><td>Keypoint PCK@0.2</td><td><strong>0.8194</strong></td><td>0.6112</td><td><strong>−0.208 (최대)</strong></td><td>SegFormer</td></tr>
+            <tr><td>Attribute F1 (macro)</td><td><strong>0.3986</strong></td><td>0.3195</td><td>−0.079 (최소)</td><td>SegFormer</td></tr>
+            <tr><td>combined</td><td><strong>0.6227</strong></td><td>0.4441</td><td>−0.179</td><td>SegFormer</td></tr>
+            <tr><td>Pixel Accuracy</td><td>0.9702</td><td>0.9440</td><td>−0.026</td><td>SegFormer</td></tr>
+            <tr><td>학습 시간 (50 epoch)</td><td><strong>2h 18m</strong></td><td>6h 1m</td><td><strong>&times; 2.6</strong></td><td>SegFormer</td></tr>
+            <tr><td>Total params</td><td>46.1M</td><td>49.7M</td><td>+7.8%</td><td>SegFormer (작음)</td></tr>
+            <tr class="row-highlight"><td colspan="5"><strong>8 / 8 metric 모두 SegFormer 우위 + 학습 속도 2.6배 빠름</strong></td></tr>
+        </tbody>
+    </table>
+
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/compare_curves.png" alt="두 모델 학습 곡선 overlay">
+        <figcaption>두 모델의 학습 곡선을 비교<br>SegFormer는 학습 시작 5 epoch 만에 mIoU 0.46까지 빠르게 오르지만, DeepLab은 50 epoch을 다 학습해도 0.34에 머문다</figcaption>
+    </figure>
+
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/compare_per_class_iou.png" alt="24 클래스별 IoU 두 모델 grouped bar">
+        <figcaption>24개 클래스 모두에서 SegFormer가 DeepLab과 같거나 더 좋은 IoU를 보인다<br>bag / socks / rompers / eyewear 4개 클래스는 두 모델 모두 IoU=0 — 데이터 자체의 한계다</figcaption>
+    </figure>
+
+    <h3>최종 모델 선택 :  SegFormer-B3 (Phase&nbsp;2)</h3>
+    <p>
+        SegFormer 모델이 8개 metric 전부 우위 + 학습 속도 2.6배 + 모델 크기도 더 작다.<br>
+        P1에서는 EfficientNet과 ViT가 사실상 동률이었던 것과 정반대로, P2에서는 픽셀 단위 예측을 여러 task로 동시에 푸는 환경에서는 백본 선택이 결과를 크게 좌우한다</strong>는 점을 정량적으로 확인했다.
+        특히 두 모델에서 PCK 격차가 가장 크게 나타난 것은, 이미지 전체를 한 번에 보는 구조인 Transformer가 CNN보다 keypoint 예측 같은 위치 정보에서 유리하다는 것을 확인시켜준다.
+        또한 소수 클래스에서는 두 모델의 차이가 없는 것으로, 모델 아키텍처보다는 데이터 자체의 한계가 더 결정적이라는 점도 알 수 있다.
+    </p>
+</section>
+
+<!-- Engineering -->
+<section class="project-section">
+    <h2>엔지니어링 노트</h2>
+    <ul class="engineering-list">
+        <li><strong>사전학습 가중치가 안 들어가는 함정 발견 & 해결.</strong> 초기 학습에서 mIoU가 0.43에서 멈추는 이상 증상이 보였다. 알고 보니 transformers 라이브러리가 기본으로 읽는 가중치 파일이 최근 보안 패치로 차단되어, 사전학습 없이 random 초기값으로 학습되고 있었다. <code>use_safetensors=True</code> 옵션을 사용했다.</li>
+        <li><strong>2단계로 나눠 학습해 안정성 확보.</strong> 처음부터 3-task를 동시 학습하지 않고, Phase&nbsp;1에서 parsing 하나만 20 epoch 학습한 뒤 Phase&nbsp;2에서 이 backbone을 이어받아 3-task를 학습해 Single-task와 Multi-task를 비교했다.</li>
+        <li><strong>3개 task를 균형 있게 보는 EarlyStopping 기준.</strong> 한 metric만 기준으로 학습 중단 시점을 정하면 나머지 두 task가 죽어버릴 수 있다. 그래서 <code>0.4·mIoU + 0.4·PCK + 0.2·F1</code>로 가중 평균한 값을 기준으로 사용했다.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Fashion AI, Computer Vision, ML Engineering 분야의 커리어 기회를 찾고 있습니다.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 원연정 &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>

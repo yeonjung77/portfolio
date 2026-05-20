@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2. Fashion Image Parsing — Yeonjung Won</title>
+    <meta name="description" content="Multi-task learning on DeepFashion-MultiModal 12,694 images — parsing, keypoint, attribute. SegFormer-B3 vs DeepLabV3+ fair comparison.">
+
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/project.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="project-page">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="p2_parsing.html" class="active">EN</a>
+                <a href="../../projects/p2_parsing.html">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P2</span> &middot; <span>CV Basic</span>
+        </div>
+        <h1>Fashion Image Parsing</h1>
+        <p class="project-hero-tagline">
+            Built a 3-task multi-task model that simultaneously predicts pixel-level 24-class parsing, 21 keypoints, and 26-dim multi-label attributes for 12,694 images from DeepFashion-MultiModal, and<br>
+            compared SegFormer-B3 against DeepLabV3+ ResNet-101 under identical training conditions.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">0.538</div>
+                <div class="metric-label">Parsing mIoU</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">0.819</div>
+                <div class="metric-label">Keypoint PCK@0.2</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">8 / 8</div>
+                <div class="metric-label">SegFormer wins vs DeepLab</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">12.7K / 3</div>
+                <div class="metric-label">Images / Tasks</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">PyTorch</span>
+            <span class="tag">transformers</span>
+            <span class="tag">SegFormer-B3</span>
+            <span class="tag">DeepLabV3+ R101</span>
+            <span class="tag">Multi-task Learning</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>Scope : </strong> A multi-task model that simultaneously performs pixel-level parsing (24 classes), keypoint detection (21 points), and multi-label attribute classification (26-dim) on 12,694 DeepFashion-MultiModal images, learned with 3 heads on top of a single shared backbone.</li>
+        <li><strong>3-Phase strategy : </strong> 1. SegFormer Parsing-only baseline → 2. SegFormer multi-task → 3. DeepLabV3+ multi-task. Quantifies two key comparison axes: Single vs Multi-task / CNN vs Transformer.</li>
+        <li><strong>Final choice : </strong> SegFormer-B3 — wins all 8 metrics over DeepLab (mIoU −0.199, PCK −0.208, F1 −0.079) and trains 2.6&times; faster.</li>
+    </ul>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>Problem</h2>
+    <p>
+        From a fashion image, simultaneously perform pixel-level garment segmentation (parsing), human joint localization (keypoints), and garment attribute classification with a single model.<br>
+        <strong>DensePose annotations were not used :</strong> DeepFashion-MultiModal bundles DensePose surface-coordinate maps, but the main task (24-class parsing) already provides per-pixel ground truth, so the input was kept simple at RGB 3-channel.
+    </p>
+</section>
+
+<!-- EDA -->
+<section class="project-section">
+    <h2>Data Exploration (EDA)</h2>
+
+    <h3>Dataset overview</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>Source</td><td>DeepFashion-MultiModal</td></tr>
+            <tr><td>Raw images</td><td>44,096 (750&times;1101 RGB, full-body)</td></tr>
+            <tr><td>Precise parsing masks</td><td>12,701 (full-body crops only, 24-class annotation)</td></tr>
+            <tr><td>Keypoints</td><td>12,702 (21 keypoints + visibility 0=visible / 1=occluded / 2=missing)</td></tr>
+            <tr><td>Attribute labels</td><td>42,544 (Shape 12 + Fabric 7 + Pattern 7 = 26-dim multi-label)</td></tr>
+            <tr><td>Model input size</td><td>512&times;384</td></tr>
+            <tr><td>Model output (3-Head)</td><td>parsing [B, 24, H, W] / keypoint [B, 21, 3] / attribute [B, 26]</td></tr>
+        </tbody>
+    </table>
+
+    <br>
+
+    <h3>4-modality intersection &mdash; 12,694 usable images</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Modality</th><th>Count</th><th>Missing (vs images)</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Images (.jpg)</td><td>44,096</td><td>&mdash;</td></tr>
+            <tr><td>Parsing masks (*_segm.png)</td><td>12,701</td><td>31,395</td></tr>
+            <tr><td>Keypoints (loc + vis)</td><td>12,702</td><td>31,394</td></tr>
+            <tr><td>Attributes (shape + fabric + pattern)</td><td>42,544</td><td>1,552</td></tr>
+            <tr class="row-highlight"><td><strong>&cap; 4-modality intersection</strong></td><td><strong>12,694 ★</strong></td><td>&mdash;</td></tr>
+        </tbody>
+    </table>
+
+    <br>
+
+    <h3>1. Parsing classes &mdash; extreme long-tail (background 77.37%)</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/eda_pixel_ratio.png" alt="24 parsing class pixel ratio">
+        <figcaption>Background occupies 77.37% of all pixels. 16 classes including belt / bag / glove / scarf are under 1%, with a max/min ratio of 7,737&times;.</figcaption>
+    </figure>
+    <ul>
+        <li>High-volume classes (pixel &gt; 2%): background, hat, hair, upper_clothes, skirt, right_arm, right_leg, face</li>
+        <li>Minority classes (pixel &lt; 0.05%): belt, bag, glove, socks, scarf, necklace, rompers, eyewear</li>
+    </ul>
+    <p>
+        &rarr; mIoU is averaged over 24 classes, so when minority classes fail to learn, the mean is dragged down. In practice, <strong>bag / socks / rompers / eyewear all ended up at exactly IoU=0.0000</strong>, dragging mIoU down by −0.167.
+    </p>
+
+    <br>
+
+    <h3>2. Keypoint visibility (93.65% visible)</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/eda_kp_visibility.png" alt="21 keypoint visibility distribution">
+        <figcaption>Of 266,574 keypoints: visible 93.65% / occluded 5.76% / missing 0.59%. Lower-body ankle/toe show higher occluded ratios.</figcaption>
+    </figure>
+    <p>&rarr; Each keypoint is labeled with a <strong>visibility value of 0 / 1 / 2</strong>, which determines whether it contributes to the training loss and to the evaluation PCK.</p>
+    <table class="result-table">
+        <thead><tr><th>visibility</th><th>Meaning</th><th>Training loss</th><th>Evaluation PCK</th></tr></thead>
+        <tbody>
+            <tr><td>0</td><td>visible &mdash; clearly seen</td><td>✅ used</td><td>✅ evaluated</td></tr>
+            <tr><td>1</td><td>occluded &mdash; partially hidden but position is inferable</td><td>✅ used</td><td>❌ excluded</td></tr>
+            <tr><td>2</td><td>missing &mdash; outside the image, coordinate is a placeholder</td><td>❌ excluded</td><td>❌ excluded</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">
+        Occluded points are still useful as training signal (the position can be guessed), but excluded from evaluation so only truly visible points contribute to the score. <br>
+        Missing points carry no meaningful coordinate and are excluded from both training and evaluation.
+    </p>
+
+    <br>
+
+    <h3>3. 26-dim attributes &mdash; multi-label binary</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/eda_shape_distribution.png" alt="Per-attribute category distribution for 12 Shape attributes">
+        <figcaption>Stacked-bar of per-category proportions across 12 Shape attributes (each attribute uses its own category scheme, so percentages are normalized). <br><code>sleeve_length</code> / <code>lower_length</code> / <code>neckline</code> show diverse categories, while <code>socks</code> / <code>hat</code> / <code>glasses</code> / <code>ring</code> are over 90% dominated by a single value &mdash; extreme imbalance.</figcaption>
+    </figure>
+    <figure>
+        <img src="../assets/img/projects/p2/eda_fabric_pattern.png" alt="Fabric / Pattern category frequency">
+        <figcaption>Fabric is dominated by <code>cotton</code>; Pattern by <code>pure_color</code>. Both axes show long-tail structure.</figcaption>
+    </figure>
+
+    <br>
+
+    <h3>4. Sample visualization &mdash; annotation alignment check</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/eda_overlay.png" alt="Image + parsing + keypoint overlay">
+        <figcaption>Image + parsing mask + 21 keypoints overlaid together. Left/right keypoints are visually distinct &mdash; motivates the left/right swap policy on HorizontalFlip.</figcaption>
+    </figure>
+
+    <br>
+
+    <h3>EDA summary &mdash; findings and how they were handled</h3>
+    <ul class="summary-list">
+        <li><strong>Data availability :</strong> Of 44,096 raw images, only 12.6K have precise parsing masks &mdash; used as the training pool with a 70/15/15 split.</li>
+        <li><strong>Parsing class imbalance :</strong> Background alone occupies <strong>77.37%</strong> of pixels; 16 of 24 classes are under 1% (max/min ratio 7,737&times;).</li>
+        <li><strong>Keypoint visibility :</strong> Of 266,574 keypoints, visible 93.65% / occluded 5.76% / missing 0.59%. Lower-body ankle/toe show higher occluded ratios (dress/skirt effect).</li>
+        <li><strong>Attribute long-tail :</strong> Among 26 dims, Pattern <code>pure_color</code> and Fabric <code>cotton</code> dominate; some Shape attributes (navel, ring) are very rare.</li>
+        <li><strong>Annotation alignment :</strong> Image, parsing, and keypoint share the same coordinate frame, so augmentations must be applied identically to all three (when flipping horizontally, left/right labels must also be swapped, and mask resize uses NEAREST to preserve class IDs).</li>
+    </ul>
+</section>
+
+<!-- Data Pipeline -->
+<section class="project-section">
+    <h2>Data Pipeline</h2>
+
+    <h3>Pipeline outputs</h3>
+    <table class="result-table">
+        <thead><tr><th>Step</th><th>Input</th><th>Output</th></tr></thead>
+        <tbody>
+            <tr><td>1. Parsing mask collection</td><td>segm/*_segm.png</td><td>{filename: path} &mdash; 12,701</td></tr>
+            <tr><td>2. Keypoint merge</td><td>keypoints_loc.txt + keypoints_vis.txt</td><td>{filename: [21, 3]} &mdash; 12,702</td></tr>
+            <tr><td>3. 26-dim attribute encoding</td><td>shape / fabric / pattern .txt (3 files)</td><td>{filename: [26]} binary &mdash; 12,694</td></tr>
+            <tr><td>4. 4-modality verification</td><td>image ∩ parsing ∩ keypoint ∩ attribute</td><td>sorted list &mdash; 12,694</td></tr>
+            <tr><td>5. 70/15/15 split (seed=42)</td><td>12,694 images</td><td>train 8,886 / val 1,904 / test 1,904</td></tr>
+        </tbody>
+    </table>
+
+    <h3>26-dim attribute encoding</h3>
+    <table class="result-table">
+        <thead><tr><th>Slice</th><th>Dim</th><th>Encoding</th></tr></thead>
+        <tbody>
+            <tr><td><code>[0:12]</code> Shape</td><td>12</td><td>Each column ≠ 0 (not NA) → 1</td></tr>
+            <tr><td><code>[12:19]</code> Fabric</td><td>7</td><td>If any of upper/lower/outer positions matches the category → 1; NA(7) excluded</td></tr>
+            <tr><td><code>[19:26]</code> Pattern</td><td>7</td><td>Same rule as Fabric</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Augmentation</h3>
+    <table class="result-table">
+        <thead><tr><th>Transform</th><th>image</th><th>mask</th><th>keypoint</th></tr></thead>
+        <tbody>
+            <tr><td>Resize</td><td>BILINEAR</td><td><strong>NEAREST (required)</strong></td><td>Coordinate scaling</td></tr>
+            <tr><td>HorizontalFlip (p=0.5)</td><td>flip</td><td>flip + class swap (3 pairs)</td><td>x-flip + index swap (9 pairs)</td></tr>
+            <tr><td>ColorJitter</td><td>applied</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <tr><td>ImageNet Normalize</td><td>applied</td><td>&mdash;</td><td>&mdash;</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Method -->
+<section class="project-section">
+    <h2>Training Method</h2>
+
+    <h3>3-Head multi-task architecture (shared backbone)</h3>
+    <pre class="code-block">Image [B, 3, 512, 384]
+  → Backbone           → feat [B, C, h, w]   (SegFormer: C=512, DeepLab: C=2048)
+  ├─ ParsingHead       Conv-BN-ReLU&times;2 + bilinear upsample → 1&times;1 Conv → [B, 24, H, W]
+  ├─ KeypointHead      GAP → FC(C,512) → ReLU → Dropout(0.3) → FC(512, 63) → [B, 21, 3]
+  └─ AttributeHead     GAP → Dropout(0.3) → FC(C,512) → ReLU → FC(512, 26)</pre>
+
+    <h3>Loss &mdash; Multi-task Weighted Sum</h3>
+    <pre class="code-block">L_total = 1.0 &times; L_parse  +  0.1 &times; L_kp  +  0.5 &times; L_attr</pre>
+    <ul>
+        <li><strong>Parsing</strong> &mdash; <code>CrossEntropyLoss</code>; spatial mismatch handled via <code>F.interpolate</code></li>
+        <li><strong>Keypoint</strong> &mdash; <code>MSELoss(reduction='none')</code> on (x, y), masking only <strong><code>visibility==2 (missing)</code></strong></li>
+        <li><strong>Attribute</strong> &mdash; <code>BCEWithLogitsLoss</code></li>
+    </ul>
+    <p>&rarr; In multi-task training, the 3 losses are summed into a single total loss and backpropagated together.</p>
+    <table class="result-table">
+        <thead><tr><th>Loss</th><th>What it measures</th><th>Early-training magnitude</th></tr></thead>
+        <tbody>
+            <tr><td>Keypoint MSE</td><td>Coordinates (pixels, 0~500)</td><td><strong>~ 24,000</strong></td></tr>
+            <tr><td>Parsing CE</td><td>Class probabilities</td><td>~ 0.3</td></tr>
+            <tr><td>Attribute BCE</td><td>0/1 probabilities</td><td>~ 0.7</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">
+        Keypoint loss is roughly 30,000~80,000&times; larger than the other two, so it is multiplied by 0.1 to bring it down to a comparable scale &mdash; letting all 3 tasks train in balance.
+    </p>
+
+    <h3>3-Phase training strategy</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Phase</th><th>Model</th><th>Purpose</th><th>backbone lr</th><th>Epochs</th><th>λ_parse / λ_kp / λ_attr</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Phase&nbsp;1</strong></td><td>SegFormer</td><td>Parsing-only baseline (for Single vs Multi comparison)</td><td>1e-4</td><td>20</td><td>1.0 / <strong>0.0</strong> / <strong>0.0</strong></td></tr>
+            <tr><td><strong>Phase&nbsp;2</strong></td><td>SegFormer</td><td>Main result (3-task joint, reuses Phase&nbsp;1 backbone)</td><td>5e-5</td><td>50</td><td>1.0 / 0.1 / 0.5</td></tr>
+            <tr><td><strong>Phase&nbsp;3</strong></td><td>DeepLab</td><td>CNN vs Transformer comparison (identical hyperparams to Phase&nbsp;2)</td><td>5e-5</td><td>50</td><td>1.0 / 0.1 / 0.5</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Phase&nbsp;1 builds a baseline by training parsing alone (keypoint and attribute loss weights set to 0). Phase&nbsp;2 then resumes from this Phase&nbsp;1 backbone and runs the full 3-task training.</p>
+
+    <h3>Training settings (Phase&nbsp;2/3 identical)</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>Optimizer</td><td>AdamW (backbone lr 5e-5, head lr 5e-4, weight_decay 0.01)</td></tr>
+            <tr><td>Scheduler</td><td>LinearWarmup(5ep, start_factor=0.1) + CosineAnnealingLR(eta_min=1e-6)</td></tr>
+            <tr><td>EarlyStopping</td><td>patience 7, mode='max', monitor <code>combined = 0.4&middot;mIoU + 0.4&middot;PCK + 0.2&middot;F1</code></td></tr>
+            <tr><td>Augmentation (train)</td><td>HorizontalFlip(L/R swap) + ColorJitter(image-only) + ImageNet Normalize</td></tr>
+            <tr><td>Augmentation (val/test)</td><td>Resize + ToTensor + ImageNet Normalize (deterministic)</td></tr>
+            <tr><td>Shared hyperparams</td><td>batch_size 16, image 512&times;384, grad clip 1.0, seed 42</td></tr>
+            <tr><td>GPU</td><td>Single H100 80GB</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Phase&nbsp;3 holds every variable except the backbone identical to Phase&nbsp;2, so the gap can be attributed purely to backbone architecture.</p>
+</section>
+
+<!-- Results -->
+<section class="project-section">
+    <h2>Results</h2>
+
+    <h3>Test metrics (best model)</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Metric</th><th>Phase&nbsp;1 (Baseline, Single Parsing)</th><th>Phase&nbsp;2 (SegFormer)</th><th>Phase&nbsp;3 (DeepLab)</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>best epoch (combined)</td><td>19</td><td><strong>48</strong></td><td>46</td></tr>
+            <tr><td>Parsing mIoU</td><td><strong>0.6236</strong></td><td>0.5380</td><td>0.3394</td></tr>
+            <tr><td>Keypoint PCK@0.2</td><td>(N/A &mdash; λ_kp=0)</td><td><strong>0.8194</strong></td><td>0.6112</td></tr>
+            <tr><td>Attribute F1 (macro)</td><td>(N/A &mdash; λ_attr=0)</td><td>0.3986</td><td>0.3195</td></tr>
+            <tr class="row-highlight"><td><strong>combined</strong></td><td>0.3093</td><td><strong>0.6227</strong></td><td>0.4441</td></tr>
+            <tr><td>Pixel Accuracy</td><td>0.9806</td><td>0.9702</td><td>0.9440</td></tr>
+            <tr><td>Training time (single H100)</td><td>55m 43s</td><td><strong>2h 18m 38s</strong></td><td>6h 1m 19s</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Plan success criteria</h3>
+    <table class="result-table">
+        <thead><tr><th>Metric</th><th>Target</th><th>Phase&nbsp;1</th><th>Phase&nbsp;2</th><th>Phase&nbsp;3</th></tr></thead>
+        <tbody>
+            <tr><td>Parsing mIoU</td><td>&ge; 0.50</td><td>✅ +0.124</td><td>✅ +0.038</td><td>❌ −0.161</td></tr>
+            <tr><td>Keypoint PCK@0.2</td><td>&ge; 0.70</td><td>(N/A)</td><td>✅ <strong>+0.119</strong></td><td>❌ −0.089</td></tr>
+            <tr><td>Attribute F1 (macro)</td><td>&ge; 0.60</td><td>(N/A)</td><td>❌ −0.201</td><td>❌ −0.281</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Phase&nbsp;2's model passes 2 out of 3 criteria. The F1 shortfall can be attributed to minority categories landing at F1=0 and dragging the macro mean down.</p>
+
+    <h3>Learning curves (Phase&nbsp;2 SegFormer)</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/segformer_training_curves.png" alt="Phase 2 learning curves">
+        <figcaption>SegFormer-B3 over 50 epochs &mdash; train/val loss, 3 metrics, combined score, cosine LR schedule. EarlyStopping was not triggered.</figcaption>
+    </figure>
+
+    <h3>Phase&nbsp;2 &mdash; Per-class IoU (24 classes)</h3>
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/segformer_per_class_iou.png" alt="Per-class IoU bar">
+        <figcaption>High-volume classes reach IoU 0.7~0.99. Among the highlighted minority classes (belt/scarf/gloves/neckwear/eyewear), 4 land at IoU=0.</figcaption>
+    </figure>
+
+    <h3>Phase&nbsp;2 &mdash; Per-keypoint PCK@0.2 (21 points)</h3>
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/segformer_per_keypoint_pck.png" alt="Per-keypoint PCK bar">
+        <figcaption>Upper body (shoulder/arm/face) sits at 0.93~0.97. Highlighted lower body (hip/knee/ankle/toe) drops to 0.62~0.81 &mdash; the dress/skirt occlusion effect.</figcaption>
+    </figure>
+
+    <h3>Phase&nbsp;2 &mdash; Per-attribute F1 (26 dims)</h3>
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/segformer_attr_f1.png" alt="Per-attribute F1 bar">
+        <figcaption>Color-coded by group: Shape (blue) / Fabric (orange) / Pattern (green).<br>9 categories (Fabric: leather/furry/chiffon/other, Pattern: floral/striped/lattice/color_block/other) land at F1=0, dragging the macro average down.</figcaption>
+    </figure>
+
+    <h3>Phase&nbsp;2 &mdash; Test sample visualizations</h3>
+    <figure>
+        <img src="../assets/img/projects/p2/parsing_overlay.png" alt="Parsing overlay on 5 test samples">
+        <figcaption>Input / GT (Ground Truth) parsing / Pred parsing. 24-class color overlay for visual alignment check.</figcaption>
+    </figure>
+    <figure>
+        <img src="../assets/img/projects/p2/keypoint_samples.png" alt="Keypoint predictions on 5 test samples">
+        <figcaption>Input / GT keypoint (green=visible, orange=occluded) / Pred keypoint (magenta).</figcaption>
+    </figure>
+</section>
+
+<!-- Key Insight -->
+<section class="project-section project-insight">
+    <h2>Insights</h2>
+
+    <h3>1. Class imbalance is the ceiling for mIoU</h3>
+    <table class="result-table">
+        <thead><tr><th>Class</th><th>IoU</th><th>EDA pixel ratio</th></tr></thead>
+        <tbody>
+            <tr><td>bag / socks / rompers / eyewear</td><td><strong>0.0000 &times; 4 classes</strong></td><td>&lt; 0.05%</td></tr>
+            <tr><td>gloves / left_shoe</td><td>0.03</td><td>0.00~0.01%</td></tr>
+            <tr><td>scarf</td><td>0.13</td><td>0.03%</td></tr>
+            <tr><td>background / skirt / left_arm</td><td>0.99 / 0.87 / 0.86</td><td>77% / 3.7% / 0.8%</td></tr>
+        </tbody>
+    </table>
+    <p>
+        <strong>Four minority classes &mdash; each occupying less than 0.05% of all parsed pixels &mdash; alone dragged mIoU down by −0.167.</strong> The direct cause of the mIoU 0.54 is the data long-tail.
+        The same pattern explains the Attribute F1=0.40 shortfall: 9 Fabric/Pattern categories landed at F1=0, pulling the macro average down significantly.
+    </p>
+
+    <h3>2. Keypoint accuracy varies sharply by body region</h3>
+    <table class="result-table">
+        <thead><tr><th>Region</th><th>Example keypoint</th><th>PCK</th><th>Reason</th></tr></thead>
+        <tbody>
+            <tr><td>Upper body</td><td>shoulder / elbow / nose</td><td><strong>0.95+</strong></td><td>Almost always clearly visible</td></tr>
+            <tr><td>Lower body (toe)</td><td>toe</td><td>0.62</td><td>Often hidden by dresses/skirts</td></tr>
+            <tr><td>Ears</td><td>ear</td><td>~ 0.7</td><td>Hidden by hair</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">The gap between upper and lower body is not a modeling limit but a <strong>data limit &mdash; what's hidden in the image cannot be learned</strong>.</p>
+
+    <h3>3. Training all tasks together hurts the main task (parsing) <span class="muted">— Negative transfer</span></h3>
+    <p>Same backbone, same training setup &mdash; the comparison of Single-task vs 3-tasks:</p>
+    <table class="result-table">
+        <thead><tr><th></th><th>Phase&nbsp;1<br>(parsing only)</th><th>Phase&nbsp;2<br>(3-task joint)</th><th>Δ</th></tr></thead>
+        <tbody>
+            <tr><td>Parsing mIoU</td><td><strong>0.6236</strong></td><td>0.5380</td><td><strong>−0.086 ↓</strong></td></tr>
+            <tr><td>Pixel Accuracy</td><td>0.9806</td><td>0.9702</td><td>−0.010</td></tr>
+        </tbody>
+    </table>
+    <p>
+        From the very first epoch of Phase&nbsp;2, mIoU collapsed from 0.62 down to <strong>0.12</strong>, and even after 50 more epochs of training it never recovered to Phase&nbsp;1's level of 0.62.
+        The keypoint loss has such a large raw magnitude that the model's learning tilted toward keypoint and away from parsing.
+    </p>
+    <p class="muted">
+        &rarr; When multiple tasks pull the shared backbone in different directions, the main task can take a hit &mdash; this is called <strong>negative transfer</strong>.
+    </p>
+</section>
+
+<!-- Comparison -->
+<section class="project-section">
+    <h2>Model Comparison &mdash; CNN vs Transformer</h2>
+
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/compare_metric_bar.png" alt="SegFormer vs DeepLab core metrics">
+        <figcaption>Grouped bar of 3 core metrics (mIoU / PCK / F1). SegFormer wins all 8 metrics.</figcaption>
+    </figure>
+
+    <h3>8-metric comparison</h3>
+    <table class="result-table">
+        <thead>
+            <tr><th>Metric</th><th>SegFormer-B3</th><th>DeepLab R101</th><th>Δ</th><th>Winner</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Parsing mIoU</td><td><strong>0.5380</strong></td><td>0.3394</td><td>−0.199</td><td>SegFormer</td></tr>
+            <tr><td>Keypoint PCK@0.2</td><td><strong>0.8194</strong></td><td>0.6112</td><td><strong>−0.208 (largest)</strong></td><td>SegFormer</td></tr>
+            <tr><td>Attribute F1 (macro)</td><td><strong>0.3986</strong></td><td>0.3195</td><td>−0.079 (smallest)</td><td>SegFormer</td></tr>
+            <tr><td>combined</td><td><strong>0.6227</strong></td><td>0.4441</td><td>−0.179</td><td>SegFormer</td></tr>
+            <tr><td>Pixel Accuracy</td><td>0.9702</td><td>0.9440</td><td>−0.026</td><td>SegFormer</td></tr>
+            <tr><td>Training time (50 epoch)</td><td><strong>2h 18m</strong></td><td>6h 1m</td><td><strong>&times; 2.6</strong></td><td>SegFormer</td></tr>
+            <tr><td>Total params</td><td>46.1M</td><td>49.7M</td><td>+7.8%</td><td>SegFormer (smaller)</td></tr>
+            <tr class="row-highlight"><td colspan="5"><strong>SegFormer wins all 8 metrics + trains 2.6&times; faster</strong></td></tr>
+        </tbody>
+    </table>
+
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/compare_curves.png" alt="Training curve overlay">
+        <figcaption>Two models' training curves overlaid for comparison.<br>SegFormer climbs to mIoU 0.46 within just 5 epochs of warmup, while DeepLab plateaus at 0.34 even after 50 full epochs.</figcaption>
+    </figure>
+
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p2/compare_per_class_iou.png" alt="Per-class IoU grouped bar">
+        <figcaption>SegFormer matches or beats DeepLab across all 24 classes.<br>However, bag / socks / rompers / eyewear sit at IoU=0 in both models &mdash; a data-level limit.</figcaption>
+    </figure>
+
+    <h3>Final choice :  SegFormer-B3 (Phase&nbsp;2)</h3>
+    <p>
+        SegFormer wins on all 8 metrics, trains 2.6&times; faster, and is even smaller in size.<br>
+        While P1 found EfficientNet and ViT effectively tied, P2 shows the opposite &mdash; when doing pixel-level prediction across multiple tasks at once, backbone choice strongly drives the result.
+        In particular, the largest gap appearing in PCK reinforces that Transformer, which attends to the whole image at once, has an edge over CNN for spatial information like keypoint localization.
+        On the other hand, the lack of any difference on minority classes shows that for those classes the data itself &mdash; not the architecture &mdash; is the deciding factor.
+    </p>
+</section>
+
+<!-- Engineering -->
+<section class="project-section">
+    <h2>Engineering Notes</h2>
+    <ul class="engineering-list">
+        <li><strong>Caught and fixed a silent pretrained-weight loading bug.</strong> Early training showed mIoU plateauing at 0.43, which was suspicious. Turned out the default weight file path used by the transformers library was blocked by a recent security patch, so training was running with random weights instead of pretrained ones. Switching to <code>use_safetensors=True</code> resolved it.</li>
+        <li><strong>Two-stage training for stability.</strong> Instead of training all 3 tasks together from scratch, Phase&nbsp;1 trains parsing alone for 20 epochs, then Phase&nbsp;2 resumes from this backbone and runs the full 3-task training &mdash; which also enables a direct Single-task vs Multi-task comparison.</li>
+        <li><strong>EarlyStopping that balances 3 tasks.</strong> Stopping based on a single metric risks killing the other two tasks. So I use a weighted score, <code>0.4·mIoU + 0.4·PCK + 0.2·F1</code>, as the stopping criterion.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Looking for opportunities in Fashion AI, Computer Vision, and ML Engineering.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 Yeonjung Won &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>

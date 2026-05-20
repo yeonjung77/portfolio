@@ -200,6 +200,9 @@ body.project-page .nav-inner {
     border-radius: 10px;
     background: #fff;
 }
+.project-section figure.figure-medium img {
+    max-width: 720px;
+}
 .project-section figure figcaption {
     font-size: 13.5px;
     color: #666;
