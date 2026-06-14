@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P3. 패션 이미지 세그멘테이션 · 속성 태깅 · 원연정</title>
+    <meta name="description" content="Fashionpedia 45,623장으로 2-Stage 파이프라인(Mask R-CNN 검출 + ResNet-50 속성 태깅) 구축 후 FastAPI·Gradio·HuggingFace Spaces로 배포">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="P3. 패션 이미지 세그멘테이션 · 속성 태깅 · 원연정">
+    <meta property="og:description" content="Fashionpedia 2-Stage 파이프라인(Mask R-CNN + ResNet-50) 구축 + 프로덕션 서빙(FastAPI·Gradio·HuggingFace Spaces).">
+    <meta property="og:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://yeonjung77.github.io/portfolio/projects/p3_segmentation.html">
+    <meta property="og:site_name" content="포트폴리오 · 원연정">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="P3. 패션 이미지 세그멘테이션 · 속성 태깅 · 원연정">
+    <meta name="twitter:description" content="Fashionpedia 2-Stage 파이프라인(Mask R-CNN + ResNet-50) 구축 + 프로덕션 서빙.">
+    <meta name="twitter:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+
+    <!-- Pretendard 한글 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css?v=2">
+    <link rel="stylesheet" href="../css/project.css?v=2">
+</head>
+<body class="project-page lang-ko">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="../en/projects/p3_segmentation.html">EN</a>
+                <a href="p3_segmentation.html" class="active">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P3</span> &middot; <span>CV Basic</span>
+        </div>
+        <h1>패션 이미지 세그멘테이션 · 속성 태깅</h1>
+        <p class="project-hero-tagline">
+            Fashionpedia 45,623장에 대해 옷·디테일 46종을 픽셀 단위로 검출하고(Mask R-CNN),<br>
+            검출된 의류에 294개 속성을 태깅하는(ResNet-50) 2-Stage 파이프라인을 구축하고 실시간 데모로 배포했다.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">0.486</div>
+                <div class="metric-label">Stage 1 mAP@0.5</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">0.331</div>
+                <div class="metric-label">Stage 1 mAP@[.5:.95]</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">~497ms</div>
+                <div class="metric-label">End-to-End Latency</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">46 / 294</div>
+                <div class="metric-label">카테고리 / 속성</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">PyTorch</span>
+            <span class="tag">Mask R-CNN</span>
+            <span class="tag">ResNet-50</span>
+            <span class="tag">FastAPI</span>
+            <span class="tag">Gradio</span>
+            <span class="tag">HuggingFace Spaces</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>구축 대상 : </strong> 사진 1장을 받아 ① 옷·디테일을 검출/분할(Stage 1)하고 ② 각 의류의 속성을 태깅(Stage 2)한 뒤 ③ 디테일(소매·주머니 등)을 알맞은 의류에 귀속시키는 End-to-End 파이프라인.</li>
+        <li><strong>2-Stage 설계 : </strong> Stage 1 = Mask R-CNN(47-class) instance segmentation, Stage 2 = ResNet-50 multi-label(294 속성). EDA 근거로 Stage 2는 속성이 풍부한 Main 의류만(76,864 crop) 학습.</li>
+        <li><strong>프로덕션 서빙 : </strong> FastAPI(REST API) + Gradio(데모 UI) + HuggingFace Spaces(호스팅) + GitHub Pages 임베드까지. End-to-End ~497ms로 목표(500ms) 충족.</li>
+    </ul>
+</section>
+
+<!-- Live Demo (Step 18-B) -->
+<section class="project-section project-insight">
+    <h2>라이브 데모</h2>
+    <p>사진을 업로드하면 옷·디테일 검출(파랑=의류, 주황=디테일) + 의류별 Top 속성 + 전체 JSON 트리를 실시간으로 보여준다.</p>
+    <iframe
+        src="https://yeonjung77-p3-segmentation.hf.space"
+        title="P3 Fashion Segmentation Demo"
+        width="100%" height="900"
+        frameborder="0" loading="lazy"
+        allow="clipboard-read; clipboard-write"
+        style="border:1px solid #e5e7eb; border-radius:12px; margin-top:1rem;">
+    </iframe>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>문제 정의</h2>
+    <p>
+        전신 패션 사진에서 의류와 디테일을 픽셀 단위로 분할하고, 각 의류가 어떤 속성(길이·실루엣·소재·패턴 등)을 갖는지 태깅한다.<br>
+        검출과 속성 태깅은 입력·출력·평가지표가 본질적으로 달라, 단일 모델 대신 <strong>2-Stage 파이프라인</strong>으로 분리했다. 검출 결과를 잘라(crop) 속성 분류기에 넘기는 구조다.
+    </p>
+</section>
+
+<!-- EDA -->
+<section class="project-section">
+    <h2>데이터 탐색 (EDA)</h2>
+
+    <h3>데이터셋 개요</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>출처</td><td>Fashionpedia (이미지는 HuggingFace Parquet, annotation은 COCO JSON)</td></tr>
+            <tr><td>이미지 / annotation</td><td>45,623장 / 333,401개</td></tr>
+            <tr><td>카테고리</td><td>46종 = Main 의류 27 + Garment Part 19</td></tr>
+            <tr><td>속성</td><td>294개 (11개 슈퍼카테고리)</td></tr>
+        </tbody>
+    </table>
+
+    <h3>핵심 발견 — 5가지 가정 검증</h3>
+    <table class="result-table">
+        <thead><tr><th>가정</th><th>결과</th><th>근거 수치</th></tr></thead>
+        <tbody>
+            <tr><td>Main이 Part보다 속성이 풍부</td><td>✅</td><td>속성 있는 Main 7.56개 vs Part 1.39개 (<strong>5.4배</strong>) → Stage 2는 Main만 학습</td></tr>
+            <tr><td>속성 long-tail은 "약함"</td><td>✅</td><td>294개 중 218개(74%)가 100회 이상 → BCE + pos_weight로 학습 가능</td></tr>
+            <tr><td>Main↔Part 매핑</td><td>⚠️</td><td>자연 매핑(shirt→sleeve) 多, 그러나 <code>shoe→sleeve</code> 31K 같은 부자연 매핑도 존재 → 박스 IoU 후처리 필요</td></tr>
+        </tbody>
+    </table>
+
+    <figure>
+        <img src="../assets/img/projects/p3/eda_samples.png" alt="Fashionpedia 샘플 + annotation">
+        <figcaption>전신 사진 위에 의류(Main)와 디테일(Part)이 함께 라벨링됨. 디테일은 작고 의류 내부에 포함되는 구조 → Stage 1에서 디테일 검출이 어려운 원인</figcaption>
+    </figure>
+</section>
+
+<!-- Data Pipeline -->
+<section class="project-section">
+    <h2>데이터와 전처리</h2>
+    <table class="result-table">
+        <thead><tr><th>단계</th><th>처리</th><th>산출</th></tr></thead>
+        <tbody>
+            <tr><td>이미지 인덱스</td><td>Parquet 7개 스캔</td><td>45,623장 lazy-load 인덱스</td></tr>
+            <tr><td>Stage 2 crop</td><td>Main + 속성≥1 필터 → mask 배경 제거 → 224&times;224</td><td><strong>76,864 crop</strong> (Main의 47.1%)</td></tr>
+            <tr><td>Split (seed=42)</td><td>70/15/15 (이미지 단위)</td><td>train 31,937 / val 6,843 / test 6,843</td></tr>
+            <tr><td>pos_weight</td><td>inverse frequency, max 10 clipping</td><td>294-dim (293개 속성이 가중 &gt; 1)</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Main 의류의 52.9%는 속성이 0개라(액세서리·라벨 누락) Stage 2 학습에서 제외했다.</p>
+</section>
+
+<!-- Method -->
+<section class="project-section">
+    <h2>학습 방법</h2>
+    <table class="result-table">
+        <thead><tr><th></th><th>Stage 1 — 검출/분할</th><th>Stage 2 — 속성 태깅</th></tr></thead>
+        <tbody>
+            <tr><td>모델</td><td>Mask R-CNN ResNet50-FPN (47-class, ~44M)</td><td>ResNet-50 + FC head (294-dim, ~25.6M)</td></tr>
+            <tr><td>입력</td><td>RGB 800&times;800</td><td>의류 crop 224&times;224 (배경 제거)</td></tr>
+            <tr><td>Loss</td><td>torchvision 내장 (RPN+cls+bbox+mask)</td><td>BCEWithLogitsLoss(pos_weight)</td></tr>
+            <tr><td>Optimizer</td><td>SGD (lr 0.005)</td><td>Adam (lr 1e-4) + warmup 3 + cosine</td></tr>
+            <tr><td>Epochs / Metric</td><td>20 / mAP@0.5</td><td>30 / F1 macro</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">공통 : seed 42, grad clip 1.0, ImageNet Normalize, EarlyStopping patience 5. 후처리 <code>group_instances()</code>는 디테일을 박스 IoU/포함도가 가장 큰 의류에 귀속한다.</p>
+</section>
+
+<!-- Results -->
+<section class="project-section">
+    <h2>결과</h2>
+
+    <h3>Stage 1 — 검출/분할 (전체 test)</h3>
+    <table class="result-table">
+        <thead><tr><th>Metric</th><th>test</th><th>목표</th><th>판정</th></tr></thead>
+        <tbody>
+            <tr><td>mAP@0.5</td><td><strong>0.4859</strong></td><td>&ge; 0.40</td><td>✅</td></tr>
+            <tr><td>mAP@[.5:.95]</td><td><strong>0.3313</strong></td><td>&ge; 0.25</td><td>✅</td></tr>
+            <tr><td>Main mAP / Part mAP</td><td>0.6143 / 0.3034</td><td>—</td><td>Main &gt;&gt; Part</td></tr>
+        </tbody>
+    </table>
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p3/stage1_training_curves.png" alt="Stage 1 학습 곡선">
+        <figcaption>20 epoch — loss / mAP / LR. 초반 8 epoch에 mAP 급상승, 마지막까지 상승 중(early stop 미발동)</figcaption>
+    </figure>
+    <figure>
+        <img src="../assets/img/projects/p3/seg_overlay.png" alt="Stage 1 검출 시각화">
+        <figcaption>test 이미지에 mask + bbox + label 오버레이 (의류 파랑 / 디테일 주황)</figcaption>
+    </figure>
+
+    <h3>Stage 2 — 속성 태깅</h3>
+    <table class="result-table">
+        <thead><tr><th>지표</th><th>F1 macro</th><th>Precision</th><th>Recall</th></tr></thead>
+        <tbody>
+            <tr><td>전체 294 속성 (test)</td><td>0.2503</td><td>0.2028</td><td>0.3669</td></tr>
+            <tr class="row-highlight"><td>학습 가능 속성만 (support≥200, 55개)</td><td><strong>0.5401</strong></td><td>—</td><td>—</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">전체 F1(0.25)은 목표 0.50에 미달이지만, 이는 모델이 아니라 <strong>지표·데이터의 문제</strong>다 (아래 인사이트 참조).</p>
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p3/attr_overlay.png" alt="Stage 2 속성 예측 시각화">
+        <figcaption>의류 crop별 Top 예측 속성. 의류 속성은 합리적, 액세서리는 고빈도 속성이 오부착되는 경향</figcaption>
+    </figure>
+</section>
+
+<!-- Key Insight -->
+<section class="project-section project-insight">
+    <h2>인사이트</h2>
+
+    <h3>1. 디테일(Part) mAP가 낮은 건 학습 실패가 아니라 구조적 한계</h3>
+    <p>
+        Part mAP(0.30)는 Main mAP(0.61)의 절반이다. 디테일(소매·칼라·주머니)은 <strong>작은 객체 + 극소 빈도</strong>가 겹쳐 IoU 기준을 통과하기 어렵다 — EDA에서 이미 예고된 구조적 한계다.
+    </p>
+
+    <h3>2. macro-F1의 함정 — "못한 게 아니라 데이터가 없는 것"</h3>
+    <figure class="figure-medium">
+        <img src="../assets/img/projects/p3/long_tail_f1.png" alt="속성 빈도 vs F1">
+        <figcaption>속성 빈도가 높을수록 F1이 우상향. 데이터가 부족한 희귀 속성이 평균을 끌어내린다</figcaption>
+    </figure>
+    <table class="result-table">
+        <thead><tr><th>평가 대상</th><th>속성 수</th><th>macro-F1</th></tr></thead>
+        <tbody>
+            <tr><td>전체</td><td>294</td><td>0.2503</td></tr>
+            <tr><td>support ≥ 50</td><td>106</td><td>0.4506</td></tr>
+            <tr class="row-highlight"><td>support ≥ 200</td><td>55</td><td><strong>0.5401</strong> (목표 초과)</td></tr>
+        </tbody>
+    </table>
+    <p>
+        test에 양성 0개인 속성이 <strong>68개</strong> → 수학적으로 F1=0 확정인데 전체 평균에 포함된다. 빈도-F1 단조 증가가 "한계는 모델이 아니라 데이터(희귀 속성)"임을 정량 증명한다. 보고는 <strong>전체·공정 지표를 둘 다</strong> 명시했다.
+    </p>
+
+    <h3>3. Focal Loss로도 희귀 속성은 못 살린다</h3>
+    <p class="muted">
+        BCE(0.244) vs Focal(0.245)로 F1 거의 동일 — Focal은 precision↑ recall↓로 균형만 바꿨다. 양성이 0~수십 개뿐인 속성은 어떤 손실 함수로도 학습되지 않는다. 곁가지가 아니라 데이터가 한계다.
+    </p>
+</section>
+
+<!-- Engineering -->
+<section class="project-section">
+    <h2>엔지니어링 노트</h2>
+    <ul class="engineering-list">
+        <li><strong>검증 병목 22배 단축.</strong> 매 epoch 검증이 학습보다 느렸다(75분). 예측 마스크 복원을 인스턴스별 CPU → 이미지별 GPU 일괄(<code>F.interpolate</code>)로 바꿔 검증을 ~1.2분으로 줄였다.</li>
+        <li><strong>정직한 평가 지표 설계.</strong> 전체 macro-F1만 보면 "모델이 나쁘다"로 오해하기 쉽다. support(양성 개수)별 공정 지표를 함께 측정해 한계의 진짜 원인(데이터)을 분리했다.</li>
+        <li><strong>cold start 제거.</strong> 첫 추론이 ~1700ms(CUDA 초기화)였다. 서버 시작 시 워밍업 추론을 1회 돌려 이후 요청을 ~497ms로 안정화했다.</li>
+        <li><strong>경량 배포.</strong> 카테고리·속성 이름을 원본 annotation(517MB) 대신 <code>meta_names.json</code>(37KB)으로 분리해 Space에 거대 파일 없이 배포했다.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Fashion AI, Computer Vision, ML Engineering 분야의 커리어 기회를 찾고 있습니다.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 원연정 &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>

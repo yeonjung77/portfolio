@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P9. Fashion Trend Lifecycle Classification · Yeonjung Won</title>
+    <meta name="description" content="Analyzed Google Trends search data with STL time-series decomposition to classify 156 fashion items into mega/micro/steady trends and infer lifecycle stages with business strategies.">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="P9. Fashion Trend Lifecycle Classification · Yeonjung Won">
+    <meta property="og:description" content="STL decomposition + K-means to classify 156 fashion items into mega/micro/steady, shipped as a live real-time classifier.">
+    <meta property="og:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://yeonjung77.github.io/portfolio/en/projects/p9_trend_lifecycle.html">
+    <meta property="og:site_name" content="Portfolio · Yeonjung Won">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="P9. Fashion Trend Lifecycle Classification · Yeonjung Won">
+    <meta name="twitter:description" content="STL decomposition + K-means to classify fashion trends, shipped as a live real-time classifier.">
+    <meta name="twitter:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+
+    <!-- Pretendard 한글 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css?v=2">
+    <link rel="stylesheet" href="../../css/project.css?v=2">
+</head>
+<body class="project-page lang-en">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="p9_trend_lifecycle.html" class="active">EN</a>
+                <a href="../../projects/p9_trend_lifecycle.html">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P9</span> &middot; <span>Data Analysis</span>
+        </div>
+        <h1>Fashion Trend Lifecycle Classification</h1>
+        <p class="project-hero-tagline">
+            A data-analysis project that uses STL time-series decomposition on Google Trends search data<br>
+            to classify 156 fashion items into mega / micro / steady trends and infer their lifecycle stages and business strategies.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">156</div>
+                <div class="metric-label">Fashion Items Analyzed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">3</div>
+                <div class="metric-label">Trend Clusters (mega·micro·steady)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">7</div>
+                <div class="metric-label">Time-Series Features</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">Live</div>
+                <div class="metric-label">Real-Time Classifier Shipped</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">Python</span>
+            <span class="tag">statsmodels (STL)</span>
+            <span class="tag">scikit-learn (K-means)</span>
+            <span class="tag">Plotly</span>
+            <span class="tag">Streamlit</span>
+            <span class="tag">GitHub Pages</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>Scope : </strong> Classify 156 fashion items — each with Google Trends search interest (Korea · last 5 years · weekly) — into trend types and lifecycle stages, using only the shape of the search curve.</li>
+        <li><strong>Pipeline : </strong> STL decomposition (trend + seasonality + residual) → 7 quantitative features → K-means (k=3) clustering → rule-based lifecycle stage. An unsupervised problem (no ground-truth labels) solved with clustering + rules.</li>
+        <li><strong>Productizing the analysis : </strong> The trained model (scaler + KMeans) is serialized and deployed as an analytical tool that performs real-time trend classification for any new keyword.</li>
+    </ul>
+</section>
+
+<!-- Live Demo -->
+<section class="project-section project-insight">
+    <h2>Live Demo</h2>
+    <p>Explore the clustering scatter, lifecycle quadrant map, and STL decomposition viewer interactively — then type a keyword and the trained model classifies a new item in real time.</p>
+    <iframe
+        src="https://yeonjung77.github.io/stl/"
+        title="P9 Fashion Trend Lifecycle Demo"
+        width="100%" height="900"
+        frameborder="0" loading="lazy"
+        style="border:1px solid #e5e7eb; border-radius:12px; margin-top:1rem;">
+    </iframe>
+    <p class="muted" style="margin-top:0.75rem;">If the demo doesn't load,
+        <a class="open-tab-link" href="https://yeonjung77.github.io/stl/" target="_blank" rel="noopener">open in a new tab<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+    </p>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>Problem</h2>
+    <p>
+        A fashion trend demands a completely different buying/planning strategy depending on whether it is rising now, recurring every year, or a short-lived fad.<br>
+        The goal is to extract quantitative features from the <strong>shape</strong> of the search-interest curve (uptrend · seasonality · volatility) and, without ground-truth labels, classify each item into <strong>mega · micro · steady</strong> and estimate its lifecycle stage.
+    </p>
+</section>
+
+<!-- Data -->
+<section class="project-section">
+    <h2>Data</h2>
+    <table class="result-table">
+        <tbody>
+            <tr><td>Source</td><td>Google Trends search interest (pytrends)</td></tr>
+            <tr><td>Scope</td><td>Korea · last 5 years · weekly</td></tr>
+            <tr><td>Size</td><td><strong>156 fashion items</strong> (mega / micro / steady candidate keywords)</td></tr>
+            <tr><td>Nature</td><td>Google Trends is a 0–100 normalized relative value → interpret the curve <strong>shape</strong>, not absolute search volume</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Method -->
+<section class="project-section">
+    <h2>Method</h2>
+    <div class="method-flow">
+        <div class="flow-step">
+            <span class="flow-icon">📈</span>
+            <span class="flow-label">search curve</span>
+        </div>
+        <span class="flow-arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></span>
+        <div class="flow-step">
+            <span class="flow-icon">🧩</span>
+            <span class="flow-label">STL decompose<br>trend·seasonality·residual</span>
+        </div>
+        <span class="flow-arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></span>
+        <div class="flow-step">
+            <span class="flow-icon">📊</span>
+            <span class="flow-label">7 features</span>
+        </div>
+        <span class="flow-arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></span>
+        <div class="flow-step">
+            <span class="flow-icon">🔗</span>
+            <span class="flow-label">clustering</span>
+        </div>
+        <span class="flow-arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></span>
+        <div class="flow-step">
+            <span class="flow-icon">🏷️</span>
+            <span class="flow-label">class + lifecycle</span>
+        </div>
+    </div>
+    <table class="result-table">
+        <thead><tr><th>Step</th><th>Process</th></tr></thead>
+        <tbody>
+            <tr><td>1. STL decomposition</td><td>Split the curve into <code>trend + seasonality + residual</code> (statsmodels STL)</td></tr>
+            <tr><td>2. Feature extraction</td><td>7 quantitative features — trend strength (F_T) · seasonality (F_S) · slope · duration · residual variance · sharpness · peak timing</td></tr>
+            <tr><td>3. Clustering</td><td>StandardScaler then K-means (k=3) → mega / micro / steady</td></tr>
+            <tr><td>4. Lifecycle stage</td><td>Rule-based estimate (intro → growth → maturity → decline) from trend direction + current/peak ratio</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Model Validation -->
+<section class="project-section">
+    <h2>Model Validation — Are k and the algorithm justified?</h2>
+    <p>
+        Since clustering is unsupervised (no labels), I validated "is k=3 right, is K-means best?" with the <strong>silhouette score</strong> rather than intuition. (Silhouette measures cohesion vs separation, −1 to 1.)
+    </p>
+    <table class="result-table">
+        <thead><tr><th>k</th><th>K-means</th><th>Hierarchical</th></tr></thead>
+        <tbody>
+            <tr class="row-highlight"><td><strong>3</strong></td><td><strong>0.255</strong></td><td>0.246</td></tr>
+            <tr><td>5</td><td>0.266</td><td>0.254</td></tr>
+            <tr><td>8</td><td>0.283</td><td>0.245</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">
+        Raising k from 3→8 only nudges the silhouette 0.255→0.283, so there is no clear optimal k. HDBSCAN scores higher (0.322) but only by <strong>dropping 68 of 156 items (44%) as noise</strong>, which conflicts with the goal of classifying all items. → <strong>K-means (k=3) adopted</strong> (matches the business framing + no statistical gain from splitting further).
+    </p>
+</section>
+
+<!-- Insight -->
+<section class="project-section project-insight">
+    <h2>Insights</h2>
+
+    <h3>1. Trends are a continuous spectrum, not discrete categories</h3>
+    <p>
+        All cluster scores sit at 0.21–0.28 — the clusters don't separate cleanly. This isn't a failure: it reflects that <strong>many items straddle the mega↔steady boundary</strong>, the nature of trend data. So results are read as a <strong>soft tendency</strong>, not hard labels.
+    </p>
+
+    <h3>2. Honest classification without ground truth</h3>
+    <p>
+        Instead of supervised learning, I used clustering + rules and objectively compared algorithms and k via the silhouette score, making the selection rationale explicit. I prioritized "the choice that fits the goal (classify all items)" over "the highest score."
+    </p>
+
+    <h3>3. Productizing the analysis</h3>
+    <p>
+        Rather than a one-off study, the trained model (scaler + KMeans) is serialized and deployed as an analytical tool that classifies any new keyword in real time — turning exploratory analysis into a reusable artifact.
+    </p>
+</section>
+
+<!-- Limitation -->
+<section class="project-section">
+    <h2>Limitations</h2>
+    <ul class="engineering-list">
+        <li><strong>Proxy for interest.</strong> Search interest is a proxy for attention, not actual sales.</li>
+        <li><strong>Relative values.</strong> Google Trends is a 0–100 normalized relative value, so it's read by curve shape, not absolute comparison.</li>
+        <li><strong>Feature-design dependence.</strong> The silhouette score assumes spherical clusters; results may shift with a different feature set or scaling.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Open to opportunities in Fashion AI, Computer Vision, and ML Engineering.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 Yeonjung Won &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>

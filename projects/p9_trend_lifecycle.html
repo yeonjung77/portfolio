@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P9. 패션 트렌드 수명주기 분류 · 원연정</title>
+    <meta name="description" content="Google Trends 검색 데이터를 STL 시계열 분해로 분석해 패션 아이템 156개를 메가·마이크로·스테디 트렌드로 분류하고 수명주기 단계와 실무 전략을 도출">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="P9. 패션 트렌드 수명주기 분류 · 원연정">
+    <meta property="og:description" content="STL 시계열 분해 + K-means로 패션 아이템 156개를 메가·마이크로·스테디로 분류하고 실시간 분류기로 배포.">
+    <meta property="og:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://yeonjung77.github.io/portfolio/projects/p9_trend_lifecycle.html">
+    <meta property="og:site_name" content="포트폴리오 · 원연정">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="P9. 패션 트렌드 수명주기 분류 · 원연정">
+    <meta name="twitter:description" content="STL 시계열 분해 + K-means로 패션 트렌드를 분류하고 실시간 분류기로 배포.">
+    <meta name="twitter:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+
+    <!-- Pretendard 한글 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css?v=2">
+    <link rel="stylesheet" href="../css/project.css?v=2">
+</head>
+<body class="project-page lang-ko">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="../en/projects/p9_trend_lifecycle.html">EN</a>
+                <a href="p9_trend_lifecycle.html" class="active">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P9</span> &middot; <span>Data Analysis</span>
+        </div>
+        <h1>패션 트렌드 수명주기 분류</h1>
+        <p class="project-hero-tagline">
+            Google Trends 검색 데이터를 STL 시계열 분해로 분석해 패션 아이템 156개를<br>
+            메가 · 마이크로 · 스테디 트렌드로 분류하고, 수명주기 단계와 실무 전략을 도출한 데이터 분석 프로젝트.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">156</div>
+                <div class="metric-label">분석 패션 아이템</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">3</div>
+                <div class="metric-label">트렌드 군집 (메가·마이크로·스테디)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">7</div>
+                <div class="metric-label">시계열 정량 지표</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">Live</div>
+                <div class="metric-label">실시간 분류기 배포</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">Python</span>
+            <span class="tag">statsmodels (STL)</span>
+            <span class="tag">scikit-learn (K-means)</span>
+            <span class="tag">Plotly</span>
+            <span class="tag">Streamlit</span>
+            <span class="tag">GitHub Pages</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>분석 대상 : </strong> Google Trends 검색 관심도(한국 · 최근 5년 · 주별)를 가진 패션 아이템 156개를, 검색 곡선의 모양만으로 트렌드 유형과 수명주기 단계를 분류한다.</li>
+        <li><strong>분석 흐름 : </strong> STL 시계열 분해(트렌드+계절성+잔차) → 정량 지표 7종 산출 → K-means(k=3) 군집화 → 규칙기반 수명주기 판정. 정답 라벨 없는 비지도 문제를 군집화 + 규칙으로 풀었다.</li>
+        <li><strong>분석의 제품화 : </strong> 학습된 모델(scaler + KMeans)을 직렬화하여, 임의의 신규 키워드에 대한 실시간 트렌드 분류를 수행하는 분석 도구로 배포하였다.</li>
+    </ul>
+</section>
+
+<!-- Live Demo -->
+<section class="project-section project-insight">
+    <h2>라이브 데모</h2>
+    <p>클러스터링 산점도, 수명주기 사분면, STL 분해 뷰어를 인터랙티브하게 탐색하고, 키워드를 입력하면 학습된 모델이 새 아이템을 실시간 분류한다.</p>
+    <iframe
+        src="https://yeonjung77.github.io/stl/"
+        title="P9 패션 트렌드 수명주기 분류 데모"
+        width="100%" height="900"
+        frameborder="0" loading="lazy"
+        style="border:1px solid #e5e7eb; border-radius:12px; margin-top:1rem;">
+    </iframe>
+    <p class="muted" style="margin-top:0.75rem;">데모가 보이지 않으면
+        <a class="open-tab-link" href="https://yeonjung77.github.io/stl/" target="_blank" rel="noopener">새 탭에서 열기<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+    </p>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>문제 정의</h2>
+    <p>
+        패션 트렌드는 "지금 뜨는가, 매년 반복되는가, 잠깐 유행하고 사라지는가"에 따라 기획·발주 전략이 완전히 달라진다.<br>
+        검색 관심도 곡선의 <strong>모양</strong>(상승 추세 · 계절성 · 변동성)에서 정량 지표를 뽑아, 정답 라벨 없이도 아이템을 <strong>메가 · 마이크로 · 스테디</strong>로 분류하고 수명주기 단계를 추정한다.
+    </p>
+</section>
+
+<!-- Data -->
+<section class="project-section">
+    <h2>데이터</h2>
+    <table class="result-table">
+        <tbody>
+            <tr><td>출처</td><td>Google Trends 검색 관심도 (pytrends)</td></tr>
+            <tr><td>범위</td><td>한국 · 최근 5년 · 주별</td></tr>
+            <tr><td>규모</td><td>패션 아이템 <strong>156개</strong> (메가 / 마이크로 / 스테디 후보 키워드)</td></tr>
+            <tr><td>특성</td><td>Google Trends는 0~100 정규화 상대값 → 절대 검색량이 아니라 곡선 <strong>형태</strong>로만 해석</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Method -->
+<section class="project-section">
+    <h2>분석 방법</h2>
+    <div class="method-flow">
+        <div class="flow-step">
+            <span class="flow-icon">📈</span>
+            <span class="flow-label">검색 곡선</span>
+        </div>
+        <span class="flow-arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></span>
+        <div class="flow-step">
+            <span class="flow-icon">🧩</span>
+            <span class="flow-label">STL 분해<br>트렌드·계절성·잔차</span>
+        </div>
+        <span class="flow-arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></span>
+        <div class="flow-step">
+            <span class="flow-icon">📊</span>
+            <span class="flow-label">7개 지표</span>
+        </div>
+        <span class="flow-arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></span>
+        <div class="flow-step">
+            <span class="flow-icon">🔗</span>
+            <span class="flow-label">군집화</span>
+        </div>
+        <span class="flow-arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></span>
+        <div class="flow-step">
+            <span class="flow-icon">🏷️</span>
+            <span class="flow-label">분류 + 수명주기</span>
+        </div>
+    </div>
+    <table class="result-table">
+        <thead><tr><th>단계</th><th>처리</th></tr></thead>
+        <tbody>
+            <tr><td>1. STL 분해</td><td>검색 곡선을 <code>트렌드 + 계절성 + 잔차</code>로 분리 (statsmodels STL)</td></tr>
+            <tr><td>2. 지표 산출</td><td>분해 성분에서 정량 지표 7종 계산 — 트렌드강도(F_T) · 계절성(F_S) · 기울기 · 지속기간 · 잔차변동 · 첨예도 · 피크시점</td></tr>
+            <tr><td>3. 군집화</td><td>표준화(StandardScaler) 후 K-means(k=3) → 메가 / 마이크로 / 스테디</td></tr>
+            <tr><td>4. 수명주기 판정</td><td>트렌드 방향 + 현재/피크 비율로 도입~성장~성숙~쇠퇴 단계 규칙 추정</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Model Validation -->
+<section class="project-section">
+    <h2>모델 검증 — k와 알고리즘이 타당한가</h2>
+    <p>
+        군집화는 정답 라벨이 없는 비지도학습이라 "k=3이 적절한가, K-means가 최선인가"를 주관이 아닌 <strong>실루엣 점수</strong>로 검증했다. (실루엣: 군집의 응집·분리 정도를 −1~1로 측정)
+    </p>
+    <table class="result-table">
+        <thead><tr><th>k</th><th>K-means</th><th>계층적 군집화</th></tr></thead>
+        <tbody>
+            <tr class="row-highlight"><td><strong>3</strong></td><td><strong>0.255</strong></td><td>0.246</td></tr>
+            <tr><td>5</td><td>0.266</td><td>0.254</td></tr>
+            <tr><td>8</td><td>0.283</td><td>0.245</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">
+        k를 3→8로 늘려도 실루엣이 0.255→0.283으로 <strong>미미하게만</strong> 상승해 명확한 최적 k가 없다. HDBSCAN은 0.322로 더 높지만 156개 중 <strong>68개(44%)를 잡음으로 제외</strong>한 결과라 "전수 분류" 목표와 상충한다. → <strong>K-means(k=3) 최종 채택</strong> (비즈니스 해석 틀과 일치 + 더 쪼갤 통계적 실익 없음).
+    </p>
+</section>
+
+<!-- Insight -->
+<section class="project-section project-insight">
+    <h2>인사이트</h2>
+
+    <h3>1. 트렌드는 이산 범주가 아니라 연속 스펙트럼이다</h3>
+    <p>
+        모든 군집 점수가 0.21~0.28에 머문다. 군집이 칼같이 분리되지 않는다는 뜻인데, 이는 실패가 아니라 <strong>메가↔스테디 경계에 걸친 아이템이 많다</strong>는 트렌드 데이터의 본질을 반영한다. 따라서 분류 결과는 딱딱한 라벨이 아니라 <strong>부드러운(soft) 경향</strong>으로 해석한다.
+    </p>
+
+    <h3>2. 정답 없는 분류를 정직하게</h3>
+    <p>
+        지도학습 대신 군집화 + 규칙으로 풀고, 실루엣 점수로 알고리즘·군집 수를 객관 비교해 선택 근거를 명시했다. "높은 점수"가 아니라 "목표(전수 분류)에 맞는 선택"을 우선했다.
+    </p>
+
+    <h3>3. 분석의 제품화</h3>
+    <p>
+        일회성 분석에 그치지 않고, 학습된 모델(scaler + KMeans)을 직렬화하여 임의의 신규 키워드를 실시간으로 분류하는 분석 도구 형태로 배포하였다. 탐색적 분석을 재사용 가능한 산출물로 전환한 점에서 의의가 있다.
+    </p>
+</section>
+
+<!-- Limitation -->
+<section class="project-section">
+    <h2>한계</h2>
+    <ul class="engineering-list">
+        <li><strong>관심의 프록시.</strong> 검색 관심도는 실제 판매가 아니라 관심의 대리 지표다.</li>
+        <li><strong>상대값 해석.</strong> Google Trends는 0~100 정규화 상대값이라 절대량 비교가 아닌 곡선 형태로만 해석한다.</li>
+        <li><strong>지표 설계 의존성.</strong> 실루엣 점수는 구형 군집을 가정하며, 지표 조합·표준화 방식에 따라 결과가 달라질 수 있다.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Fashion AI, Computer Vision, ML Engineering 분야의 커리어 기회를 찾고 있습니다.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 원연정 &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>

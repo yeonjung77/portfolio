@@ -126,7 +126,7 @@
                 <div class="roadmap-items">
                     <a class="roadmap-item completed" href="#p1" title="Fashion Classification">P1</a>
                     <a class="roadmap-item completed" href="#p2" title="Fashion Image Parsing">P2</a>
-                    <div class="roadmap-item upcoming">P3</div>
+                    <a class="roadmap-item completed" href="#p3" title="Fashion Image Segmentation · Attribute Tagging">P3</a>
                 </div>
             </div>
             <div class="roadmap-card">
@@ -148,6 +148,31 @@
                 <div class="roadmap-items">
                     <div class="roadmap-item upcoming">P8</div>
                 </div>
+            </div>
+            <div class="roadmap-card">
+                <span class="roadmap-card-title">Data Analysis</span>
+                <div class="roadmap-items">
+                    <a class="roadmap-item completed" href="#p9" title="Fashion Trend Lifecycle Classification">P9</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live demo shortcuts (add more .demo-btn items as projects ship) -->
+        <div class="demo-shortcuts">
+            <span class="demo-shortcuts-label">Live Demo</span>
+            <div class="demo-shortcuts-items">
+                <a class="demo-btn" href="https://yeonjung77-p3-segmentation.hf.space" target="_blank" rel="noopener">
+                    <span class="demo-btn-dot"></span>
+                    <span class="demo-btn-num">P3</span>
+                    <span class="demo-btn-text">Fashion Segmentation</span>
+                    <span class="demo-btn-arrow">&rarr;</span>
+                </a>
+                <a class="demo-btn" href="https://yeonjung77.github.io/stl/" target="_blank" rel="noopener">
+                    <span class="demo-btn-dot"></span>
+                    <span class="demo-btn-num">P9</span>
+                    <span class="demo-btn-text">Fashion Trend Lifecycle</span>
+                    <span class="demo-btn-arrow">&rarr;</span>
+                </a>
             </div>
         </div>
 
@@ -204,21 +229,57 @@
                 </article>
             </a>
 
-            <!-- P3 ~ P8 placeholders -->
+            <!-- P3 (Completed) -->
+            <a class="project-card-link" id="p3" href="projects/p3_segmentation.html">
+                <article class="project-card">
+                    <div class="project-header">
+                        <span class="project-number">P3</span>
+                        <span class="project-category">CV Basic</span>
+                    </div>
+                    <h3>Fashion Image Segmentation · Attribute Tagging</h3>
+                    <p class="project-tagline">Built a 2-Stage pipeline (Mask R-CNN detection + ResNet-50 attribute tagging) on 45,623 Fashionpedia images, deployed with FastAPI, Gradio and HuggingFace Spaces.</p>
+                    <div class="project-metrics">
+                        <span class="metric metric-green">Stage 1 mAP@0.5 0.486</span>
+                        <span class="metric metric-blue">E2E ~497ms</span>
+                        <span class="metric metric-purple">Live Demo</span>
+                    </div>
+                    <div class="tag-group">
+                        <span class="tag">PyTorch</span>
+                        <span class="tag">Mask R-CNN</span>
+                        <span class="tag">ResNet-50</span>
+                        <span class="tag">FastAPI</span>
+                        <span class="tag">HuggingFace</span>
+                    </div>
+                    <span class="project-link-cta">View Project &rarr;</span>
+                </article>
+            </a>
 
-            <article class="project-card project-card-upcoming">
-                <div class="project-header">
-                    <span class="project-number">P3</span>
-                    <span class="project-category">CV Basic</span>
-                    <span class="project-status status-upcoming">Upcoming</span>
-                </div>
-                <h3>Fashion Segmentation</h3>
-                <p class="project-tagline">Build a pixel-level instance segmentation model for clothing items and accessories.</p>
-                <div class="tag-group">
-                    <span class="tag">U-Net</span>
-                    <span class="tag">Mask R-CNN</span>
-                </div>
-            </article>
+            <!-- P9 (Completed) -->
+            <a class="project-card-link" id="p9" href="projects/p9_trend_lifecycle.html">
+                <article class="project-card">
+                    <div class="project-header">
+                        <span class="project-number">P9</span>
+                        <span class="project-category">Data Analysis</span>
+                    </div>
+                    <h3>Fashion Trend Lifecycle Classification</h3>
+                    <p class="project-tagline">Analyzed Google Trends search data with STL decomposition to classify 156 fashion items into mega/micro/steady, with live classification of new keywords via pytrends.</p>
+                    <div class="project-metrics">
+                        <span class="metric metric-green">156 Items</span>
+                        <span class="metric metric-blue">K-means k=3</span>
+                        <span class="metric metric-purple">Live Demo</span>
+                    </div>
+                    <div class="tag-group">
+                        <span class="tag">Python</span>
+                        <span class="tag">statsmodels</span>
+                        <span class="tag">scikit-learn</span>
+                        <span class="tag">Streamlit</span>
+                        <span class="tag">GitHub Pages</span>
+                    </div>
+                    <span class="project-link-cta">View Project &rarr;</span>
+                </article>
+            </a>
+
+            <!-- P4 ~ P8 placeholders -->
 
             <article class="project-card project-card-upcoming">
                 <div class="project-header">

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P3. Fashion Image Segmentation · Attribute Tagging — Yeonjung Won</title>
+    <meta name="description" content="A 2-Stage pipeline (Mask R-CNN detection + ResNet-50 attribute tagging) on Fashionpedia 45,623 images, deployed with FastAPI, Gradio and HuggingFace Spaces.">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="P3. Fashion Image Segmentation · Attribute Tagging — Yeonjung Won">
+    <meta property="og:description" content="A 2-Stage Fashionpedia pipeline (Mask R-CNN + ResNet-50) with production serving (FastAPI · Gradio · HuggingFace Spaces).">
+    <meta property="og:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://yeonjung77.github.io/portfolio/en/projects/p3_segmentation.html">
+    <meta property="og:site_name" content="포트폴리오 · 원연정">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="P3. Fashion Image Segmentation · Attribute Tagging — Yeonjung Won">
+    <meta name="twitter:description" content="A 2-Stage Fashionpedia pipeline (Mask R-CNN + ResNet-50) with production serving.">
+    <meta name="twitter:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+
+    <link rel="stylesheet" href="../../css/style.css?v=2">
+    <link rel="stylesheet" href="../../css/project.css?v=2">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="project-page">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="p3_segmentation.html" class="active">EN</a>
+                <a href="../../projects/p3_segmentation.html">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P3</span> &middot; <span>CV Basic</span>
+        </div>
+        <h1>Fashion Image Segmentation · Attribute Tagging</h1>
+        <p class="project-hero-tagline">
+            Built a 2-Stage pipeline on 45,623 Fashionpedia images that detects 46 garment/part types at the pixel level (Mask R-CNN)<br>
+            and tags 294 attributes on each detected garment (ResNet-50), then shipped it as a live demo.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">0.486</div>
+                <div class="metric-label">Stage 1 mAP@0.5</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">0.331</div>
+                <div class="metric-label">Stage 1 mAP@[.5:.95]</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">~497ms</div>
+                <div class="metric-label">End-to-End Latency</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">46 / 294</div>
+                <div class="metric-label">Categories / Attributes</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">PyTorch</span>
+            <span class="tag">Mask R-CNN</span>
+            <span class="tag">ResNet-50</span>
+            <span class="tag">FastAPI</span>
+            <span class="tag">Gradio</span>
+            <span class="tag">HuggingFace Spaces</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>Scope : </strong> An end-to-end pipeline that takes one photo and ① detects/segments garments and parts (Stage 1), ② tags each garment's attributes (Stage 2), and ③ assigns parts (sleeves, pockets, etc.) to the right garment.</li>
+        <li><strong>2-Stage design : </strong> Stage 1 = Mask R-CNN (47-class) instance segmentation; Stage 2 = ResNet-50 multi-label (294 attributes). Guided by EDA, Stage 2 trains only on attribute-rich main garments (76,864 crops).</li>
+        <li><strong>Production serving : </strong> FastAPI (REST API) + Gradio (demo UI) + HuggingFace Spaces (hosting) + GitHub Pages embed. End-to-end ~497ms, under the 500ms target.</li>
+    </ul>
+</section>
+
+<!-- Live Demo (Step 18-B) -->
+<section class="project-section project-insight">
+    <h2>Live Demo</h2>
+    <p>Upload a photo to see garment/part detection (blue = garment, orange = part), top attributes per garment, and the full JSON tree in real time.</p>
+    <p class="muted">※ The free HuggingFace Space sleeps after inactivity, so the first run may take tens of seconds to wake up.</p>
+    <iframe
+        src="https://yeonjung77-p3-segmentation.hf.space"
+        title="P3 Fashion Segmentation Demo"
+        width="100%" height="900"
+        frameborder="0" loading="lazy"
+        allow="clipboard-read; clipboard-write"
+        style="border:1px solid #e5e7eb; border-radius:12px; margin-top:1rem;">
+    </iframe>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>Problem</h2>
+    <p>
+        From a full-body fashion photo, segment garments and parts at the pixel level and tag each garment's attributes (length, silhouette, material, pattern, etc.).<br>
+        Detection and attribute tagging differ fundamentally in input, output, and metrics, so instead of one model I split the task into a <strong>2-Stage pipeline</strong>: detections are cropped and passed to the attribute classifier.
+    </p>
+</section>
+
+<!-- EDA -->
+<section class="project-section">
+    <h2>Data Exploration (EDA)</h2>
+
+    <h3>Dataset overview</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>Source</td><td>Fashionpedia (images as HuggingFace Parquet, annotations as COCO JSON)</td></tr>
+            <tr><td>Images / annotations</td><td>45,623 / 333,401</td></tr>
+            <tr><td>Categories</td><td>46 = 27 main garments + 19 garment parts</td></tr>
+            <tr><td>Attributes</td><td>294 (11 supercategories)</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Key findings — validating 5 assumptions</h3>
+    <table class="result-table">
+        <thead><tr><th>Assumption</th><th>Result</th><th>Evidence</th></tr></thead>
+        <tbody>
+            <tr><td>Main garments are attribute-richer than parts</td><td>✅</td><td>Main 7.56 vs Part 1.39 attrs (<strong>5.4&times;</strong>) → Stage 2 trains on main only</td></tr>
+            <tr><td>Attribute long-tail is "mild"</td><td>✅</td><td>218 / 294 (74%) appear ≥ 100 times → trainable with BCE + pos_weight</td></tr>
+            <tr><td>Main↔Part mapping</td><td>⚠️</td><td>Natural pairs (shirt→sleeve) dominate, but unnatural ones exist (<code>shoe→sleeve</code> 31K) → box-IoU post-processing needed</td></tr>
+        </tbody>
+    </table>
+
+    <figure>
+        <img src="../../assets/img/projects/p3/eda_samples.png" alt="Fashionpedia samples + annotation">
+        <figcaption>Garments (main) and parts are labeled together on full-body photos. Parts are small and nested inside garments — the root cause of harder part detection in Stage 1</figcaption>
+    </figure>
+</section>
+
+<!-- Data Pipeline -->
+<section class="project-section">
+    <h2>Data &amp; Preprocessing</h2>
+    <table class="result-table">
+        <thead><tr><th>Step</th><th>Process</th><th>Output</th></tr></thead>
+        <tbody>
+            <tr><td>Image index</td><td>Scan 7 Parquet files</td><td>Lazy-load index for 45,623 images</td></tr>
+            <tr><td>Stage 2 crops</td><td>Filter main + ≥1 attr → mask-out background → 224&times;224</td><td><strong>76,864 crops</strong> (47.1% of main)</td></tr>
+            <tr><td>Split (seed=42)</td><td>70/15/15 (per image)</td><td>train 31,937 / val 6,843 / test 6,843</td></tr>
+            <tr><td>pos_weight</td><td>Inverse frequency, clipped at 10</td><td>294-dim (293 attrs weighted &gt; 1)</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">52.9% of main garments have zero attributes (accessories / missing labels) and were excluded from Stage 2 training.</p>
+</section>
+
+<!-- Method -->
+<section class="project-section">
+    <h2>Method</h2>
+    <table class="result-table">
+        <thead><tr><th></th><th>Stage 1 — detection/segmentation</th><th>Stage 2 — attribute tagging</th></tr></thead>
+        <tbody>
+            <tr><td>Model</td><td>Mask R-CNN ResNet50-FPN (47-class, ~44M)</td><td>ResNet-50 + FC head (294-dim, ~25.6M)</td></tr>
+            <tr><td>Input</td><td>RGB 800&times;800</td><td>Garment crop 224&times;224 (background removed)</td></tr>
+            <tr><td>Loss</td><td>torchvision built-in (RPN+cls+bbox+mask)</td><td>BCEWithLogitsLoss(pos_weight)</td></tr>
+            <tr><td>Optimizer</td><td>SGD (lr 0.005)</td><td>Adam (lr 1e-4) + warmup 3 + cosine</td></tr>
+            <tr><td>Epochs / Metric</td><td>20 / mAP@0.5</td><td>30 / F1 macro</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Common : seed 42, grad clip 1.0, ImageNet Normalize, EarlyStopping patience 5. Post-processing <code>group_instances()</code> assigns each part to the garment with the highest box IoU / containment.</p>
+</section>
+
+<!-- Results -->
+<section class="project-section">
+    <h2>Results</h2>
+
+    <h3>Stage 1 — detection/segmentation (full test)</h3>
+    <table class="result-table">
+        <thead><tr><th>Metric</th><th>test</th><th>Target</th><th>Pass</th></tr></thead>
+        <tbody>
+            <tr><td>mAP@0.5</td><td><strong>0.4859</strong></td><td>&ge; 0.40</td><td>✅</td></tr>
+            <tr><td>mAP@[.5:.95]</td><td><strong>0.3313</strong></td><td>&ge; 0.25</td><td>✅</td></tr>
+            <tr><td>Main mAP / Part mAP</td><td>0.6143 / 0.3034</td><td>—</td><td>Main &gt;&gt; Part</td></tr>
+        </tbody>
+    </table>
+    <figure class="figure-medium">
+        <img src="../../assets/img/projects/p3/stage1_training_curves.png" alt="Stage 1 training curves">
+        <figcaption>20 epochs — loss / mAP / LR. Fast rise in the first 8 epochs, still climbing at the end (early stopping not triggered)</figcaption>
+    </figure>
+    <figure>
+        <img src="../../assets/img/projects/p3/seg_overlay.png" alt="Stage 1 detection visualization">
+        <figcaption>mask + bbox + label overlay on test images (garments blue / parts orange)</figcaption>
+    </figure>
+
+    <h3>Stage 2 — attribute tagging</h3>
+    <table class="result-table">
+        <thead><tr><th>Metric</th><th>F1 macro</th><th>Precision</th><th>Recall</th></tr></thead>
+        <tbody>
+            <tr><td>All 294 attributes (test)</td><td>0.2503</td><td>0.2028</td><td>0.3669</td></tr>
+            <tr class="row-highlight"><td>Learnable attrs only (support≥200, 55)</td><td><strong>0.5401</strong></td><td>—</td><td>—</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">The overall F1 (0.25) misses the 0.50 target, but this is a <strong>metric/data issue, not a model one</strong> (see insights).</p>
+    <figure class="figure-medium">
+        <img src="../../assets/img/projects/p3/attr_overlay.png" alt="Stage 2 attribute prediction">
+        <figcaption>Top predicted attributes per garment crop. Garment attributes are reasonable; accessories tend to attract over-frequent attributes</figcaption>
+    </figure>
+</section>
+
+<!-- Key Insight -->
+<section class="project-section project-insight">
+    <h2>Insights</h2>
+
+    <h3>1. Low part mAP is a structural limit, not a training failure</h3>
+    <p>
+        Part mAP (0.30) is half of main mAP (0.61). Parts (sleeves, collars, pockets) combine <strong>small objects + extreme rarity</strong>, making them hard to pass IoU thresholds — a structural limit already foreshadowed in EDA.
+    </p>
+
+    <h3>2. The macro-F1 trap — "not bad at it, just no data"</h3>
+    <figure class="figure-medium">
+        <img src="../../assets/img/projects/p3/long_tail_f1.png" alt="Attribute frequency vs F1">
+        <figcaption>F1 rises monotonically with attribute frequency. Rare attributes with little data drag the average down</figcaption>
+    </figure>
+    <table class="result-table">
+        <thead><tr><th>Evaluated on</th><th># attrs</th><th>macro-F1</th></tr></thead>
+        <tbody>
+            <tr><td>All</td><td>294</td><td>0.2503</td></tr>
+            <tr><td>support ≥ 50</td><td>106</td><td>0.4506</td></tr>
+            <tr class="row-highlight"><td>support ≥ 200</td><td>55</td><td><strong>0.5401</strong> (above target)</td></tr>
+        </tbody>
+    </table>
+    <p>
+        68 attributes have zero positives in test → mathematically F1=0, yet they're included in the average. The monotonic trend proves the limit is <strong>data (rare attributes), not the model</strong>. I report both the overall and the fair metric.
+    </p>
+
+    <h3>3. Focal Loss can't rescue rare attributes either</h3>
+    <p class="muted">
+        BCE (0.244) vs Focal (0.245) gives near-identical F1 — Focal only shifts the precision↑/recall↓ balance. Attributes with 0–dozens of positives can't be learned by any loss. The bottleneck is data, not the loss.
+    </p>
+</section>
+
+<!-- Engineering -->
+<section class="project-section">
+    <h2>Engineering Notes</h2>
+    <ul class="engineering-list">
+        <li><strong>22&times; faster validation.</strong> Per-epoch validation was slower than training (75 min). Moving predicted-mask restoration from per-instance CPU to per-image GPU batch (<code>F.interpolate</code>) cut it to ~1.2 min.</li>
+        <li><strong>Honest evaluation metrics.</strong> Overall macro-F1 alone suggests "the model is bad." Measuring fair metrics by support isolated the real cause (data).</li>
+        <li><strong>Removed cold start.</strong> First inference was ~1700ms (CUDA init). A one-time warmup at server startup stabilized later requests to ~497ms.</li>
+        <li><strong>Lightweight deploy.</strong> Category/attribute names were split into <code>meta_names.json</code> (37KB) instead of the original annotation (517MB), so the Space ships without huge files.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Open to opportunities in Fashion AI, Computer Vision, and ML Engineering.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 Yeonjung Won &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>

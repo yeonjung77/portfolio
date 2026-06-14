@@ -123,7 +123,7 @@
                 <div class="roadmap-items">
                     <a class="roadmap-item completed" href="#p1" title="패션 상품 분류">P1</a>
                     <a class="roadmap-item completed" href="#p2" title="패션 이미지 파싱">P2</a>
-                    <div class="roadmap-item upcoming">P3</div>
+                    <a class="roadmap-item completed" href="#p3" title="패션 이미지 세그멘테이션 · 속성 태깅">P3</a>
                 </div>
             </div>
             <div class="roadmap-card">
@@ -145,6 +145,31 @@
                 <div class="roadmap-items">
                     <div class="roadmap-item upcoming">P8</div>
                 </div>
+            </div>
+            <div class="roadmap-card">
+                <span class="roadmap-card-title">Data Analysis</span>
+                <div class="roadmap-items">
+                    <a class="roadmap-item completed" href="#p9" title="패션 트렌드 수명주기 분류">P9</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live demo shortcuts (프로젝트가 추가되면 .demo-btn 항목을 더 넣으면 됨) -->
+        <div class="demo-shortcuts">
+            <span class="demo-shortcuts-label">Live Demo</span>
+            <div class="demo-shortcuts-items">
+                <a class="demo-btn" href="https://yeonjung77-p3-segmentation.hf.space" target="_blank" rel="noopener">
+                    <span class="demo-btn-dot"></span>
+                    <span class="demo-btn-num">P3</span>
+                    <span class="demo-btn-text">패션 세그멘테이션</span>
+                    <span class="demo-btn-arrow">&rarr;</span>
+                </a>
+                <a class="demo-btn" href="https://yeonjung77.github.io/stl/" target="_blank" rel="noopener">
+                    <span class="demo-btn-dot"></span>
+                    <span class="demo-btn-num">P9</span>
+                    <span class="demo-btn-text">패션 트렌드 수명주기 분류</span>
+                    <span class="demo-btn-arrow">&rarr;</span>
+                </a>
             </div>
         </div>
 
@@ -199,19 +224,55 @@
                 </article>
             </a>
 
-            <article class="project-card project-card-upcoming">
-                <div class="project-header">
-                    <span class="project-number">P3</span>
-                    <span class="project-category">CV Basic</span>
-                    <span class="project-status status-upcoming">예정</span>
-                </div>
-                <h3>패션 세그멘테이션</h3>
-                <p class="project-tagline">의류 및 액세서리에 대한 픽셀 단위 instance segmentation 모델 구축</p>
-                <div class="tag-group">
-                    <span class="tag">U-Net</span>
-                    <span class="tag">Mask R-CNN</span>
-                </div>
-            </article>
+            <!-- P3 (Completed) -->
+            <a class="project-card-link" id="p3" href="projects/p3_segmentation.html">
+                <article class="project-card">
+                    <div class="project-header">
+                        <span class="project-number">P3</span>
+                        <span class="project-category">CV Basic</span>
+                    </div>
+                    <h3>패션 이미지 세그멘테이션 · 속성 태깅</h3>
+                    <p class="project-tagline">Fashionpedia 45,623장에 대한 2-Stage 파이프라인(Mask R-CNN 검출 + ResNet-50 속성 태깅) 구축 및 FastAPI·Gradio·HuggingFace Spaces 배포</p>
+                    <div class="project-metrics">
+                        <span class="metric metric-green">Stage 1 mAP@0.5 0.486</span>
+                        <span class="metric metric-blue">E2E ~497ms</span>
+                        <span class="metric metric-purple">Live Demo</span>
+                    </div>
+                    <div class="tag-group">
+                        <span class="tag">PyTorch</span>
+                        <span class="tag">Mask R-CNN</span>
+                        <span class="tag">ResNet-50</span>
+                        <span class="tag">FastAPI</span>
+                        <span class="tag">HuggingFace</span>
+                    </div>
+                    <span class="project-link-cta">자세히 보기 &rarr;</span>
+                </article>
+            </a>
+
+            <!-- P9 (Completed) -->
+            <a class="project-card-link" id="p9" href="projects/p9_trend_lifecycle.html">
+                <article class="project-card">
+                    <div class="project-header">
+                        <span class="project-number">P9</span>
+                        <span class="project-category">Data Analysis</span>
+                    </div>
+                    <h3>패션 트렌드 수명주기 분류</h3>
+                    <p class="project-tagline">Google Trends 검색 데이터를 STL 시계열 분해로 분석해 패션 아이템 156개를 메가·마이크로·스테디로 분류하고, pytrends 기반으로 새로운 입력 키워드를 라이브로 분류</p>
+                    <div class="project-metrics">
+                        <span class="metric metric-green">아이템 156개</span>
+                        <span class="metric metric-blue">K-means k=3</span>
+                        <span class="metric metric-purple">Live Demo</span>
+                    </div>
+                    <div class="tag-group">
+                        <span class="tag">Python</span>
+                        <span class="tag">statsmodels</span>
+                        <span class="tag">scikit-learn</span>
+                        <span class="tag">Streamlit</span>
+                        <span class="tag">GitHub Pages</span>
+                    </div>
+                    <span class="project-link-cta">자세히 보기 &rarr;</span>
+                </article>
+            </a>
 
             <article class="project-card project-card-upcoming">
                 <div class="project-header">

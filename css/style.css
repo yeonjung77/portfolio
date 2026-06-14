@@ -357,6 +357,93 @@ body {
     .roadmap-item { width: 34px; height: 30px; font-size: 0.7rem; }
 }
 
+/* --- Live Demo shortcuts (로드맵과 카드 사이) --- */
+.demo-shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    padding: 14px 18px;
+    background: var(--accent-light);
+    border: 1px solid #ece2d6;
+    border-radius: 12px;
+}
+
+.demo-shortcuts-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    white-space: nowrap;
+    padding-right: 14px;
+    border-right: 1px solid #e3d6c4;
+}
+
+.demo-shortcuts-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.demo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--white);
+    border: 1px solid #e3d6c4;
+    border-radius: 999px;
+    padding: 8px 16px;
+    text-decoration: none;
+    color: var(--primary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.demo-btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 6px 16px rgba(176, 141, 106, 0.18);
+}
+
+.demo-btn-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    flex-shrink: 0;
+    animation: demoPulse 2s infinite;
+}
+
+@keyframes demoPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+    70%  { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.demo-btn-num {
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.demo-btn-arrow {
+    color: var(--text-light);
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.demo-btn:hover .demo-btn-arrow {
+    transform: translateX(3px);
+    color: var(--accent);
+}
+
+@media (max-width: 480px) {
+    .demo-shortcuts { padding: 12px 14px; gap: 10px; }
+    .demo-shortcuts-label { font-size: 0.65rem; padding-right: 10px; }
+    .demo-btn { font-size: 0.78rem; padding: 7px 14px; }
+}
+
 /* --- Project Card --- */
 .project-card {
     background: var(--white);
