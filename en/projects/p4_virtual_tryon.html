@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P4. Virtual Try-on Diffusion Model Benchmark · Yeonjung Won</title>
+    <meta name="description" content="StableVITON vs IDM-VTON — benchmarked with official checkpoints on 2,032 VITON-HD pairs using SSIM·LPIPS·FID. Gradio · HuggingFace Spaces demo.">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="P4. Virtual Try-on Diffusion Model Benchmark · Yeonjung Won">
+    <meta property="og:description" content="StableVITON vs IDM-VTON benchmark (2,032 VITON-HD pairs, SSIM·LPIPS·FID) + Gradio · HuggingFace Spaces demo.">
+    <meta property="og:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://yeonjung77.github.io/portfolio/en/projects/p4_virtual_tryon.html">
+    <meta property="og:site_name" content="Portfolio · Yeonjung Won">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="P4. Virtual Try-on Diffusion Model Benchmark · Yeonjung Won">
+    <meta name="twitter:description" content="StableVITON vs IDM-VTON benchmark + live demo.">
+    <meta name="twitter:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+
+    <!-- Pretendard Korean font -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css?v=2">
+    <link rel="stylesheet" href="../../css/project.css?v=2">
+</head>
+<body class="project-page lang-en">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="p4_virtual_tryon.html" class="active">EN</a>
+                <a href="../../projects/p4_virtual_tryon.html">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P4</span> &middot; <span>Generative AI</span>
+        </div>
+        <h1>Virtual Try-on Diffusion Model Benchmark</h1>
+        <p class="project-hero-tagline">
+            Two state-of-the-art diffusion-based virtual try-on models (StableVITON · IDM-VTON) were inferred with their official checkpoints,<br>
+            compared on 2,032 VITON-HD pairs under identical conditions using SSIM · LPIPS · FID, and shipped as a live demo.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">0.885</div>
+                <div class="metric-label">Best SSIM (IDM-VTON)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">9.25</div>
+                <div class="metric-label">Best FID (IDM-VTON)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">2 models</div>
+                <div class="metric-label">Same-condition benchmark</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">2,032</div>
+                <div class="metric-label">VITON-HD test pairs</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">PyTorch</span>
+            <span class="tag">Diffusion</span>
+            <span class="tag">StableVITON</span>
+            <span class="tag">IDM-VTON</span>
+            <span class="tag">Gradio</span>
+            <span class="tag">HuggingFace Spaces</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>Benchmark design : </strong> Rather than training a model, two public SOTA virtual try-on models were inferred on <strong>identical data and identical pairs</strong> to quantitatively compare which performs better.</li>
+        <li><strong>Two evaluation modes : </strong> <strong>paired</strong> — erase and reconstruct the original garment (ground truth exists → SSIM·LPIPS) — and <strong>unpaired</strong> — dress the person in a different garment (no ground truth → FID). Both fidelity and realism were measured.</li>
+        <li><strong>Result & deployment : </strong> Confirmed that IDM-VTON leads on all three metrics, and shipped a demo that compares the inputs and both models' outputs on Gradio + HuggingFace Spaces.</li>
+    </ul>
+</section>
+
+<!-- Live Demo -->
+<section class="project-section project-insight">
+    <h2>Live Demo</h2>
+    <p>Pick a sample (person) to see the <strong>inputs (① person photo → ② garment region removed → ③ garment to apply) → both models' outputs</strong>. (Pre-generated result comparison.)</p>
+    <iframe
+        src="https://yeonjung77-p4-virtual-tryon.hf.space"
+        title="P4 Virtual Try-On Benchmark Demo"
+        width="100%" height="900"
+        frameborder="0" loading="lazy"
+        allow="clipboard-read; clipboard-write"
+        style="border:1px solid #e5e7eb; border-radius:12px; margin-top:1rem;">
+    </iframe>
+    <p class="muted" style="margin-top:0.75rem;">If the demo does not load,
+        <a class="open-tab-link" href="https://yeonjung77-p4-virtual-tryon.hf.space" target="_blank" rel="noopener">open in a new tab<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+    </p>
+    <p class="muted" style="font-size:0.86rem;">
+        ※ The two models require different torch versions, so they cannot run in the same server process, and on a free CPU diffusion inference is far too slow to be practical. The demo therefore presents pre-generated results for comparison.
+    </p>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>Problem Definition</h2>
+    <p>
+        StableVITON and IDM-VTON are already trained on VITON-HD and publicly released. Re-training on the same data adds little value;
+        what matters more is <strong>fairly measuring which model performs better under identical conditions, in a reproducible way</strong>.
+        This project uses the official code and checkpoints as-is for inference, while the evaluation, visualization, and demo were implemented to compare the two models on equal footing.
+    </p>
+
+    <h3>⚠️ Challenges Faced</h3>
+    <p class="muted">Actually running and comparing research-grade open-source code was itself the core difficulty.</p>
+    <table class="result-table">
+        <thead><tr><th>Challenge</th><th>What happened</th></tr></thead>
+        <tbody>
+            <tr><td>Dependency conflicts</td><td>The two models require different library versions; installing them in one environment broke things → separate conda environments per model</td></tr>
+            <tr><td>Newer-GPU incompatibility</td><td>The officially recommended version (torch cu117) did not run on the experiment GPU (H100), requiring debugging to a compatible build (cu118)</td></tr>
+            <tr><td>Corrupted checkpoint</td><td>A weight file from the official source (OneDrive) was truncated and would not open → re-obtained from a HuggingFace mirror</td></tr>
+            <tr><td>Cannot compare simultaneously</td><td>Differing torch versions meant both models could not be loaded in one process → inferred separately, then compared the saved results</td></tr>
+            <tr><td>Generalization barrier</td><td>Another dataset (DressCode) uses a different input format (densepose), so a fair generalization comparison was not directly possible (see Insights)</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Models & Data -->
+<section class="project-section">
+    <h2>Models &amp; Data</h2>
+    <table class="result-table">
+        <thead><tr><th>Model</th><th>Family</th><th>Output resolution</th><th>Characteristics</th></tr></thead>
+        <tbody>
+            <tr><td>StableVITON</td><td>Latent Diffusion (ControlNet-style)</td><td>512&times;384</td><td>cross-attention warping for garment alignment</td></tr>
+            <tr><td>IDM-VTON</td><td>Latent Diffusion + IP-Adapter</td><td>768&times;1024</td><td>dual encoding of garment appearance &amp; detail, high resolution</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Data &amp; Fairness</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>Dataset</td><td>VITON-HD test, <strong>2,032 pairs</strong> (upper-body try-on)</td></tr>
+            <tr><td>Model inputs</td><td>person image + garment image + 3 preprocessed maps — agnostic (person with garment removed) · densepose (body-part map) · human parse (region segmentation)</td></tr>
+            <tr><td>Preprocessing source</td><td>used the maps provided by VITON-HD as-is (no separate generation)</td></tr>
+            <tr><td>Fairness</td><td>fed both models the <strong>identical (person, garment) pairs</strong>, with seed fixed to 42</td></tr>
+        </tbody>
+    </table>
+    <p class="muted" style="font-size:0.86rem;">
+        ※ HR-VITON (GAN, 2022) was also a candidate but excluded because it was incompatible with the experiment GPU (H100, sm_90) and torch 1.8.2.
+    </p>
+</section>
+
+<!-- Evaluation -->
+<section class="project-section">
+    <h2>Evaluation</h2>
+    <p>
+        The same model is inferred in two modes, each evaluated with the metric that fits its nature.
+    </p>
+    <ul class="summary-list">
+        <li><strong>paired (reconstruction) : </strong> the person's original garment is reconstructed, so <strong>a ground-truth photo exists</strong>. Therefore <strong>SSIM·LPIPS</strong>, which measure how close the result is to the ground truth (similarity), were used.</li>
+        <li><strong>unpaired (cross try-on) : </strong> a different garment is applied, so <strong>there is no ground-truth image to compare against</strong>. Instead of per-image comparison, <strong>FID</strong> measures how close the overall distribution of results is to that of real photos (realism).</li>
+    </ul>
+    <p class="muted">Because the two models output different resolutions (512&times;384 vs 768&times;1024), to compare them on equal footing SSIM·LPIPS resize both results to a common size, while FID — which measures the distance between the overall distributions rather than individual images — processes everything at a fixed size internally, so it is unaffected by the resolution difference.</p>
+</section>
+
+<!-- Results -->
+<section class="project-section">
+    <h2>Results</h2>
+    <table class="result-table">
+        <thead><tr><th>Model</th><th>SSIM ↑</th><th>LPIPS ↓</th><th>FID ↓</th></tr></thead>
+        <tbody>
+            <tr><td>StableVITON</td><td>0.7975</td><td>0.1966</td><td>15.63</td></tr>
+            <tr class="row-highlight"><td><strong>IDM-VTON</strong></td><td><strong>0.8847</strong></td><td><strong>0.0792</strong></td><td><strong>9.25</strong></td></tr>
+        </tbody>
+    </table>
+    <p class="muted">IDM-VTON recorded higher performance on all three metrics (SSIM +0.087, LPIPS &minus;0.117, FID &minus;6.39). It consistently led on both reconstruction fidelity (SSIM·LPIPS) and generation realism (FID).</p>
+
+    <figure>
+        <img src="../../assets/img/projects/p4/compare_unpaired.png" alt="Cross try-on (unpaired) comparison">
+    </figure>
+    <figure style="margin-top:2rem;">
+        <img src="../../assets/img/projects/p4/compare_paired.png" alt="Reconstruction (paired) comparison">
+    </figure>
+</section>
+
+<!-- Insight -->
+<section class="project-section project-insight">
+    <h2>Insights</h2>
+
+    <h3>1. Why the gap — resolution and encoding</h3>
+    <p>
+        The gap was largest on LPIPS (0.079 vs 0.197, ~2.5&times;). Thanks to its <strong>higher output resolution (768&times;1024)</strong> and its structure that <strong>encodes garment appearance and detail together</strong>, IDM-VTON preserved texture, logos, and wrinkles better.
+        StableVITON (512&times;384) is lighter and faster but lags on detail — interpreted as a <strong>quality–speed trade-off</strong>.
+    </p>
+
+    <h3>2. Generalization (DressCode) evaluation was deferred</h3>
+    <p>
+        Both models are trained on VITON-HD, an in-domain dataset. I therefore wanted to additionally check <strong>whether performance holds on an unseen dataset (DressCode), i.e. generalization</strong>.
+        (Since both models are trained on upper-body try-on, I planned to use only the upper-body category of DressCode for a fair comparison.)
+    </p>
+    <p>
+        However, it was deferred because the <strong>densepose input format differs</strong>. The models were trained on VITON-HD-format densepose, and even after converting DressCode's densepose by standard means, the format did not match exactly.
+    </p>
+    <p class="muted">
+        Feeding mismatched input would unfairly lower the scores and distort the comparison. Getting it exactly right would require re-running the preprocessing model (detectron2), which I judged not worth the cost, so I deferred it and <strong>left it as future work</strong>.
+    </p>
+</section>
+
+<!-- Engineering -->
+<section class="project-section">
+    <h2>Engineering Notes</h2>
+    <ul class="engineering-list">
+        <li><strong>Per-model environment isolation : </strong> to avoid dependency conflicts, I separated the StableVITON / IDM-VTON / evaluation conda environments and stably inferred a total of 8,128 images (2 models &times; 2 modes &times; 2,032 pairs).</li>
+        <li><strong>Newer-GPU support : </strong> while setting up the <strong>StableVITON inference environment</strong>, the officially recommended version (torch cu117) did not support the architecture of the newer GPU (H100), causing a <strong>CUDA kernel error at inference time</strong> → switched to a supported build (cu118). The StableVITON checkpoint was also corrupted while downloading from the official source (OneDrive), so I re-obtained it from a <strong>mirror (an identical copy of the weights hosted on HuggingFace)</strong>.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Open to opportunities in Fashion AI, Computer Vision, and ML Engineering.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 Yeonjung Won &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>

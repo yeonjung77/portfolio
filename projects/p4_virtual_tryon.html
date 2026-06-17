@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P4. 가상 피팅 Diffusion 모델 벤치마크 · 원연정</title>
+    <meta name="description" content="StableVITON vs IDM-VTON — 학습 없이 공식 체크포인트로 추론해 VITON-HD 2,032쌍에서 SSIM·LPIPS·FID로 비교한 가상 피팅 모델 벤치마크. Gradio·HuggingFace Spaces 데모.">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="P4. 가상 피팅 Diffusion 모델 벤치마크 · 원연정">
+    <meta property="og:description" content="StableVITON vs IDM-VTON 벤치마크 (VITON-HD 2,032쌍, SSIM·LPIPS·FID) + Gradio·HuggingFace Spaces 데모.">
+    <meta property="og:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://yeonjung77.github.io/portfolio/projects/p4_virtual_tryon.html">
+    <meta property="og:site_name" content="포트폴리오 · 원연정">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="P4. 가상 피팅 Diffusion 모델 벤치마크 · 원연정">
+    <meta name="twitter:description" content="StableVITON vs IDM-VTON 벤치마크 + 라이브 데모.">
+    <meta name="twitter:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+
+    <!-- Pretendard 한글 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css?v=2">
+    <link rel="stylesheet" href="../css/project.css?v=2">
+</head>
+<body class="project-page lang-ko">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="../en/projects/p4_virtual_tryon.html">EN</a>
+                <a href="p4_virtual_tryon.html" class="active">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P4</span> &middot; <span>Generative AI</span>
+        </div>
+        <h1>가상 피팅 Diffusion 모델 벤치마크</h1>
+        <p class="project-hero-tagline">
+            최신 Diffusion 기반 가상 피팅 모델 두 가지(StableVITON · IDM-VTON)를 공식 체크포인트로 추론하고,<br>
+            VITON-HD 2,032쌍에서 SSIM · LPIPS · FID로 동일 조건 비교한 뒤 라이브 데모로 배포했다.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">0.885</div>
+                <div class="metric-label">최고 SSIM (IDM-VTON)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">9.25</div>
+                <div class="metric-label">최저 FID (IDM-VTON)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">2 모델</div>
+                <div class="metric-label">동일 조건 벤치마크</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">2,032</div>
+                <div class="metric-label">VITON-HD test 쌍</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">PyTorch</span>
+            <span class="tag">Diffusion</span>
+            <span class="tag">StableVITON</span>
+            <span class="tag">IDM-VTON</span>
+            <span class="tag">Gradio</span>
+            <span class="tag">HuggingFace Spaces</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>벤치마크 설계 : </strong> 공개 SOTA 가상 피팅 모델 두 가지를 <strong>동일 데이터·동일 쌍으로 추론</strong>해 어느 모델이 더 우수한지 정량 비교</li>
+        <li><strong>두 가지 평가 모드 : </strong> 원본 이미지의 의류를 지웠다가 다시 복원하는 <strong>paired</strong>(정답 있음 → SSIM·LPIPS)와 원본 이미지에 다른 의류를 입히는 <strong>unpaired</strong>(정답 없음 → FID)를 모두 측정해 충실도와 사실성을 함께 평가.</li>
+        <li><strong>결과 & 배포 : </strong> IDM-VTON이 세 지표 모두 우세함을 확인하고, 입력과 두 모델 결과를 비교하는 데모를 Gradio + HuggingFace Spaces로 배포.</li>
+    </ul>
+</section>
+
+<!-- Live Demo -->
+<section class="project-section project-insight">
+    <h2>라이브 데모</h2>
+    <p>샘플(인물)을 고르면 <strong>입력(① 인물 사진 → ② 의류 영역 제거 → ③ 합성할 의류) → 두 모델 결과</strong>를 보여준다. (사전 생성 결과 비교 방식)</p>
+    <iframe
+        src="https://yeonjung77-p4-virtual-tryon.hf.space"
+        title="P4 Virtual Try-On Benchmark Demo"
+        width="100%" height="900"
+        frameborder="0" loading="lazy"
+        allow="clipboard-read; clipboard-write"
+        style="border:1px solid #e5e7eb; border-radius:12px; margin-top:1rem;">
+    </iframe>
+    <p class="muted" style="margin-top:0.75rem;">데모가 보이지 않으면
+        <a class="open-tab-link" href="https://yeonjung77-p4-virtual-tryon.hf.space" target="_blank" rel="noopener">새 탭에서 열기<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+    </p>
+    <p class="muted" style="font-size:0.86rem;">
+        ※ 두 모델은 라이브러리(torch) 버전이 서로 달라 한 서버에서 동시에 실행할 수 없고, 무료 CPU 환경에서는 Diffusion 추론이 너무 느려 사실상 불가능했기 때문에 미리 생성해 둔 결과를 비교 전시하는 방식으로 데모를 구성했다.
+    </p>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>문제 정의</h2>
+    <p>
+        StableVITON과 IDM-VTON은 이미 VITON-HD로 학습되어 공개된 모델이다. 따라서 동일 데이터로 재학습하는 것보다,
+        <strong>같은 조건에서 어느 모델이 더 우수한지를 공정하게 측정하고 재현 가능하게 만드는 것</strong>이 더 의미 있다고 판단했다.
+        본 프로젝트는 공식 코드와 체크포인트를 그대로 사용해 추론하고, 평가·시각화·데모는 구현하여 두 모델을 동일 선상에서 비교했다.
+    </p>
+
+    <h3>⚠️ 프로젝트에서 마주한 어려움</h3>
+    <p class="muted">연구용 공개 코드를 실제로 돌려 비교하는 과정 자체가 핵심 난관이었다.</p>
+    <table class="result-table">
+        <thead><tr><th>어려움</th><th>구체적 상황</th></tr></thead>
+        <tbody>
+            <tr><td>의존성 충돌</td><td>두 모델의 라이브러리 버전 요구가 서로 달라, 한 환경에 같이 설치하면 깨졌다 → 모델별 conda 환경 분리</td></tr>
+            <tr><td>최신 GPU 비호환</td><td>공식 안내 버전(torch cu117)이 실험 GPU(H100)에서 동작하지 않아, 호환되는 버전(cu118)으로 맞추는 디버깅 필요</td></tr>
+            <tr><td>체크포인트 손상</td><td>공식 배포처(OneDrive)에서 받은 가중치 파일이 중간에 잘려 열리지 않음 → HuggingFace 미러에서 재확보</td></tr>
+            <tr><td>동시 비교 불가</td><td>두 모델의 torch 버전이 달라 한 프로세스에 함께 올릴 수 없음 → 각각 추론해 결과를 저장한 뒤 비교</td></tr>
+            <tr><td>일반화 평가의 벽</td><td>다른 데이터셋(DressCode)은 입력 형식(densepose)이 달라, 그대로는 공정한 일반화 비교가 불가능 (아래 인사이트 참조)</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Models & Data -->
+<section class="project-section">
+    <h2>비교 모델 &amp; 데이터</h2>
+    <table class="result-table">
+        <thead><tr><th>모델</th><th>계열</th><th>출력 해상도</th><th>특징</th></tr></thead>
+        <tbody>
+            <tr><td>StableVITON</td><td>Latent Diffusion (ControlNet 계열)</td><td>512&times;384</td><td>의류 정렬용 cross-attention warping</td></tr>
+            <tr><td>IDM-VTON</td><td>Latent Diffusion + IP-Adapter</td><td>768&times;1024</td><td>의류 외형·디테일 이중 인코딩, 고해상도</td></tr>
+        </tbody>
+    </table>
+    <h3>데이터 &amp; 공정성</h3>
+    <table class="result-table">
+        <tbody>
+            <tr><td>데이터셋</td><td>VITON-HD test <strong>2,032쌍</strong> (상의 try-on)</td></tr>
+            <tr><td>모델 입력</td><td>인물 이미지 + 의류 이미지 + 전처리물 3종 — agnostic(의류 제거한 인물) · densepose(신체 부위 맵) · human parse(영역 분할)</td></tr>
+            <tr><td>전처리 출처</td><td>VITON-HD가 제공하는 전처리물을 그대로 사용 (별도 생성 없음)</td></tr>
+            <tr><td>공정성 장치</td><td>두 모델에 <strong>동일한 (인물, 의류) 쌍</strong>을 입력, seed 42 고정</td></tr>
+        </tbody>
+    </table>
+    <p class="muted" style="font-size:0.86rem;">
+        ※ HR-VITON(GAN, 2022)도 후보였으나 실험 GPU(H100, sm_90)와 torch 1.8.2가 호환되지 않아 제외.
+    </p>
+</section>
+
+<!-- Evaluation -->
+<section class="project-section">
+    <h2>평가 방법</h2>
+    <p>
+        같은 모델을 두 가지 모드로 추론하고, 각 모드의 성격에 맞는 지표를 사용했다.
+    </p>
+    <ul class="summary-list">
+        <li><strong>paired (원본 재구성) : </strong> 인물이 원래 입고 있던 의류를 그대로 복원하므로 <strong>원본 사진이라는 정답이 존재</strong>한다. 따라서 결과가 정답과 얼마나 같은지(유사도)를 재는 <strong>SSIM·LPIPS</strong>를 사용했다.</li>
+        <li><strong>unpaired (교차 피팅) : </strong> 다른 의류를 입히므로 <strong>비교할 정답 이미지가 없다</strong>. 따라서 개별 비교 대신, 생성 결과 전체가 실제 사진 분포에 얼마나 가까운지(사실성)를 재는 <strong>FID</strong>를 사용했다.</li>
+    </ul>
+    <table class="result-table">
+        <thead><tr><th>지표</th><th>모드</th><th>의미</th><th>방향</th></tr></thead>
+        <tbody>
+            <tr><td>SSIM</td><td>paired</td><td>원본과 구조적 유사도</td><td>높을수록 ↑</td></tr>
+            <tr><td>LPIPS</td><td>paired</td><td>원본과 지각적(딥피처) 거리</td><td>낮을수록 ↓</td></tr>
+            <tr><td>FID</td><td>unpaired</td><td>생성 결과 분포 vs 실제 사진 분포</td><td>낮을수록 ↓</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">두 모델은 출력 해상도가 다르기 때문에(512&times;384 vs 768&times;1024) 동일한 기준으로 공정하게 비교하기 위해, SSIM·LPIPS는 두 결과를 같은 크기로 맞춰(resize) 계산했다. FID는 이미지를 한 장씩 비교하지 않고 결과 전체의 분포를 비교하는 지표로, 계산 과정에서 모든 이미지를 같은 크기로 변환하므로 해상도 차이의 영향을 받지 않는다.</p>
+</section>
+
+<!-- Results -->
+<section class="project-section">
+    <h2>결과</h2>
+    <table class="result-table">
+        <thead><tr><th>모델</th><th>SSIM ↑</th><th>LPIPS ↓</th><th>FID ↓</th></tr></thead>
+        <tbody>
+            <tr><td>StableVITON</td><td>0.7975</td><td>0.1966</td><td>15.63</td></tr>
+            <tr class="row-highlight"><td><strong>IDM-VTON</strong></td><td><strong>0.8847</strong></td><td><strong>0.0792</strong></td><td><strong>9.25</strong></td></tr>
+        </tbody>
+    </table>
+    <p class="muted">IDM-VTON이 세 지표 모두에서 더 높은 성능을 기록했다 (SSIM +0.087, LPIPS &minus;0.117, FID &minus;6.39). 복원 충실도(SSIM·LPIPS)와 생성 사실성(FID) 양쪽에서 일관되게 앞섰다.</p>
+
+    <figure>
+        <img src="../assets/img/projects/p4/compare_unpaired.png" alt="교차 피팅(unpaired) 비교">
+    </figure>
+    <figure style="margin-top:2rem;">
+        <img src="../assets/img/projects/p4/compare_paired.png" alt="원본 재구성(paired) 비교">
+    </figure>
+</section>
+
+<!-- Insight -->
+<section class="project-section project-insight">
+    <h2>인사이트</h2>
+
+    <h3>1. 성능 차이 원인 분석 - 해상도와 인코딩</h3>
+    <p>
+        특히 LPIPS에서 격차가 컸다 (0.079 vs 0.197, 약 2.5배). IDM-VTON은 <strong>높은 출력 해상도(768&times;1024)</strong>와 <strong>의류 외형·디테일을 함께 인코딩</strong>하는 구조 덕분에 질감·로고·주름을 더 잘 보존했다.
+        StableVITON(512&times;384)은 더 가볍고 빠른 대신 디테일에서 뒤처졌다 — <strong>품질과 속도의 트레이드오프</strong>로 해석된다.
+    </p>
+
+    <h3>2. DressCode 데이터셋을 활용한 일반화 평가 보류</h3>
+    <p>
+        두 모델이 학습한 VITON-HD는 in-domain 데이터다. 따라서 <strong>학습에 쓰이지 않은 다른 데이터셋(DressCode)에서도 성능이 유지되는지(일반화)</strong>를 추가로 확인하려 했다.
+        (두 모델 모두 상의 try-on으로 학습됐기 때문에, 공정 비교를 위해 DressCode에서도 상의 카테고리만 사용할 계획이었다.)
+    </p>
+    <p>
+        그러나 <strong>densepose 입력 형식이 달라</strong> 보류했다. 두 모델은 VITON-HD 형식의 densepose로 학습되었는데, DressCode의 densepose를 표준 방식으로 변환해도 형식이 정확히 맞지 않았다.
+    </p>
+    <p class="muted">
+        형식이 어긋난 입력을 넣으면 점수가 불공정하게 낮아져 비교가 왜곡된다. 정확히 맞추려면 전처리 모델(detectron2)을 새로 돌려야 하나 비용 대비 효용이 낮다고 판단해 보류하고, <strong>향후 과제로 남겨두었다</strong>.
+    </p>
+
+</section>
+
+<!-- Engineering -->
+<section class="project-section">
+    <h2>엔지니어링 노트</h2>
+    <ul class="engineering-list">
+        <li><strong>모델별 환경 격리 : </strong> 의존성 충돌을 피하기 위해 StableVITON·IDM-VTON·평가용 conda 환경을 분리하고, 총 8,128장(2모델 &times; 2모드 &times; 2,032쌍)을 안정적으로 추론했다.</li>
+        <li><strong>최신 GPU 대응 : </strong> <strong>StableVITON 추론 환경</strong>을 구성할 때, 공식 안내 버전(torch cu117)이 최신 GPU(H100)의 아키텍처를 지원하지 않아 <strong>추론 실행 시 CUDA 커널 오류</strong>가 발생했다 → 지원 버전(cu118)으로 교체. 또한 StableVITON의 공식 체크포인트가 배포처(OneDrive)에서 내려받는 중 손상돼, <strong>HuggingFace에 공개된 동일 가중치 사본(미러)</strong>에서 재확보했다.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Fashion AI, Computer Vision, ML Engineering 분야의 커리어 기회를 찾고 있습니다.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 원연정 &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>
