@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P5. Text-to-Fashion Generation · Yeonjung Won</title>
+    <meta name="description" content="LoRA fine-tuned Stable Diffusion v1.5 on FashionGen for text-to-fashion image generation. FID improved 72.4→59.6, rank comparison, Gradio · HuggingFace Spaces demo.">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="P5. Text-to-Fashion Generation · Yeonjung Won">
+    <meta property="og:description" content="LoRA fine-tuned Stable Diffusion v1.5 (FashionGen) — FID 72.4→59.6 + live demo.">
+    <meta property="og:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://yeonjung77.github.io/portfolio/en/projects/p5_generation.html">
+    <meta property="og:site_name" content="Portfolio · Yeonjung Won">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="P5. Text-to-Fashion Generation · Yeonjung Won">
+    <meta name="twitter:description" content="Stable Diffusion LoRA fine-tuning + live demo.">
+    <meta name="twitter:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+
+    <!-- Pretendard 한글 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css?v=2">
+    <link rel="stylesheet" href="../../css/project.css?v=2">
+</head>
+<body class="project-page lang-en">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="p5_generation.html" class="active">EN</a>
+                <a href="../../projects/p5_generation.html">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P5</span> &middot; <span>Generative AI</span>
+        </div>
+        <h1>Text-to-Fashion Generation</h1>
+        <p class="project-hero-tagline">
+            LoRA fine-tuned Stable Diffusion v1.5 on the FashionGen dataset to generate<br>
+            fashion product images from text prompts, with the fine-tuning effect verified quantitatively via FID and CLIP.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">59.6</div>
+                <div class="metric-label">FID (fine-tuned, rank4)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">&minus;16%</div>
+                <div class="metric-label">FID improvement (72.4 → 59.6)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">rank 4</div>
+                <div class="metric-label">rank 4 vs 8 → 4 is enough</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">49,148</div>
+                <div class="metric-label">training images (top-10 · dedup)</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">PyTorch</span>
+            <span class="tag">Stable Diffusion</span>
+            <span class="tag">LoRA</span>
+            <span class="tag">diffusers</span>
+            <span class="tag">FID · CLIP</span>
+            <span class="tag">Gradio</span>
+            <span class="tag">HuggingFace Spaces</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>Domain fine-tuning: </strong> <strong>LoRA fine-tuned</strong> general-purpose Stable Diffusion v1.5 on FashionGen to turn fashion-specific text into product images.</li>
+        <li><strong>Comparison experiments: </strong> Demonstrated the domain effect via <strong>before vs after</strong> fine-tuning, and analyzed the quality–cost trade-off via <strong>LoRA rank 4 vs 8</strong>.</li>
+        <li><strong>Quantitative evaluation & deployment: </strong> Generated from 1,000 real captions to confirm <strong>FID improved 72.4 → 59.6</strong>, and deployed the results as a Gradio + HuggingFace Spaces demo.</li>
+    </ul>
+</section>
+
+<!-- Live Demo -->
+<section class="project-section project-insight">
+    <h2>Live Demo</h2>
+    <iframe
+        src="https://yeonjung77-p5-text-to-fashion.hf.space"
+        title="P5 Text-to-Fashion Generation Demo"
+        width="100%" height="900"
+        frameborder="0" loading="lazy"
+        allow="clipboard-read; clipboard-write"
+        style="border:1px solid #e5e7eb; border-radius:12px; margin-top:1rem;">
+    </iframe>
+    <p class="muted" style="margin-top:0.75rem;">If the demo does not load,
+        <a class="open-tab-link" href="https://yeonjung77-p5-text-to-fashion.hf.space" target="_blank" rel="noopener">open in a new tab<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+    </p>
+    <p class="muted" style="font-size:0.86rem;">
+        ※ Diffusion generation is too slow on a free CPU environment, so the demo presents pre-generated results.
+    </p>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>Problem</h2>
+    <p>
+        General-purpose Stable Diffusion struggles with <strong>fashion-specific terms (e.g., jacquard, mandarin collar) and product-shot styling</strong>.
+        Training a model from scratch is impractical, so the goal was to <strong>adapt off-the-shelf SD to the fashion domain by adding only a LoRA adapter</strong> and to verify the effect quantitatively.
+    </p>
+
+    <h3>⚠️ Challenges faced</h3>
+    <p class="muted">Even with a proven library, running, comparing, and deploying involved several real-world issues to debug.</p>
+    <table class="result-table">
+        <thead><tr><th>Challenge</th><th>Situation / Resolution</th></tr></thead>
+        <tbody>
+            <tr><td>Library version conflicts</td><td>Latest transformers (5.x) · numpy (2.x) · setuptools (82) broke with torch 2.1 → pinned compatible versions</td></tr>
+            <tr><td>Precision (dtype) conflict</td><td>Validation generation crashed from mixing LoRA (fp32) + base (fp16) → wrapped in autocast</td></tr>
+            <tr><td>Evaluation protocol</td><td>FID is meaningless on a few images → generated from 1,000 real captions for a distribution-level comparison</td></tr>
+            <tr><td>Data resolution limit</td><td>Source data is 256px → upscaled to SD-native 512, and documented the limit honestly</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Data & Method -->
+<section class="project-section">
+    <h2>Data &amp; Method</h2>
+    <table class="result-table">
+        <tbody>
+            <tr><td>Dataset</td><td>FashionGen — curated heavy imbalance (2,972×) and duplicates into <strong>top-10 categories + 1 image per product (dedup) → 49,148 images</strong> (256 → 512 upscale)</td></tr>
+            <tr><td>Captions</td><td>Used <code>input_description</code> as-is (only 10% exceed CLIP's 77 tokens → auto-truncation)</td></tr>
+            <tr><td>Model</td><td>Stable Diffusion v1.5 + <strong>LoRA</strong> (U-Net attention; VAE · Text Encoder · U-Net backbone frozen)</td></tr>
+            <tr><td>Training</td><td>ε-prediction MSE · AdamW 1e-4 · 15,000 steps · fp16 · single GPU (diffusers-based)</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Evaluation -->
+<section class="project-section">
+    <h2>Evaluation</h2>
+    <p>To compare under the same conditions as the real fashion distribution, 1,000 validation captions were used to generate images, then evaluated with two metrics.</p>
+    <table class="result-table">
+        <thead><tr><th>Metric</th><th>Meaning</th><th>Direction</th></tr></thead>
+        <tbody>
+            <tr><td>FID</td><td>Distribution gap between generated and real fashion images</td><td>lower ↓ (closer to real)</td></tr>
+            <tr><td>CLIP Score</td><td>Alignment between generated image and text prompt</td><td>higher ↑</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Results -->
+<section class="project-section">
+    <h2>Results</h2>
+    <table class="result-table">
+        <thead><tr><th>Model</th><th>FID ↓</th><th>CLIP ↑</th></tr></thead>
+        <tbody>
+            <tr><td>base (before fine-tuning)</td><td>72.37</td><td>0.2911</td></tr>
+            <tr class="row-highlight"><td><strong>LoRA rank 4</strong></td><td><strong>59.59</strong></td><td>0.2807</td></tr>
+            <tr><td>LoRA rank 8</td><td>60.99</td><td>0.2815</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Fine-tuning lowered FID from 72.4 to 59.6 (<strong>~16%</strong>), moving generated results closer to the real fashion distribution. Increasing rank to 8 gave nearly identical (slightly worse) results, confirming <strong>rank 4 is sufficient (saturated)</strong>.</p>
+</section>
+
+<!-- Insight -->
+<section class="project-section project-insight">
+    <h2>Insights</h2>
+
+    <h3>1. Domain effect — style consistency</h3>
+    <p>
+        Before fine-tuning, the base produced varied compositions (outdoor, lifestyle, etc.), whereas LoRA consistently generated a <strong>product-shot style with plain background, frontal view, and centered model</strong>.
+        The qualitative change (product-shot style) matched the quantitative improvement (FID&darr;), confirming the domain adaptation worked.
+    </p>
+
+    <h3>2. Performance saturation by LoRA rank</h3>
+    <p>
+        Doubling LoRA rank from 4 to 8 yielded nearly identical FID/CLIP. In other words, <strong>performance already saturated at rank 4</strong>, so there was no benefit in increasing capacity.
+        Rather than assuming excess capacity, the minimum sufficient capacity was identified through experiments.
+    </p>
+
+    <h3>3. Honest limitations</h3>
+    <p class="muted">
+        The absolute FID (~60) fell short of the target (≤30). This is because the data is 256px upscaled (limited detail) and the evaluation captions are noisy real product descriptions mixed with measurements and material codes.
+        Rather than forcing a workaround, the cause was documented as a limitation, leaving higher-resolution data and caption refinement as future work.
+    </p>
+</section>
+
+<!-- Engineering -->
+<section class="project-section">
+    <h2>Engineering Notes</h2>
+    <ul class="engineering-list">
+        <li><strong>Reproducible pipeline: </strong> Built an end-to-end flow — preprocessing (H5 → imagefolder) → LoRA training (diffusers-based) → bulk generation → FID·CLIP evaluation → demo — with a verification checkpoint at each stage.</li>
+        <li><strong>Real-world troubleshooting: </strong> Diagnosed and resolved version conflicts (transformers/numpy/setuptools), an in-training dtype crash (autocast), the FID bulk-generation protocol, and large binary deployment (HF API upload).</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Open to career opportunities in Fashion AI, Computer Vision, and ML Engineering.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 Yeonjung Won &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>
