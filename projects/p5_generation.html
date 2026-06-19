@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P5. Text-to-Fashion 이미지 생성 · 원연정</title>
+    <meta name="description" content="Stable Diffusion v1.5를 FashionGen으로 LoRA 파인튜닝해 텍스트→패션 이미지를 생성. FID 72.4→59.6 개선, rank 비교, Gradio·HuggingFace Spaces 데모.">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="P5. Text-to-Fashion 이미지 생성 · 원연정">
+    <meta property="og:description" content="Stable Diffusion v1.5 LoRA 파인튜닝 (FashionGen) — FID 72.4→59.6 개선 + 라이브 데모.">
+    <meta property="og:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://yeonjung77.github.io/portfolio/projects/p5_generation.html">
+    <meta property="og:site_name" content="포트폴리오 · 원연정">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="P5. Text-to-Fashion 이미지 생성 · 원연정">
+    <meta name="twitter:description" content="Stable Diffusion LoRA 파인튜닝 + 라이브 데모.">
+    <meta name="twitter:image" content="https://yeonjung77.github.io/portfolio/assets/img/og_thumbnail.png">
+
+    <!-- Pretendard 한글 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css?v=2">
+    <link rel="stylesheet" href="../css/project.css?v=2">
+</head>
+<body class="project-page lang-ko">
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">&larr; Fashion <span class="nav-logo-x">&times;</span> AI</a>
+        <div class="nav-links">
+            <a href="../index.html#contact">Contact</a>
+            <span class="lang-toggle">
+                <a href="../en/projects/p5_generation.html">EN</a>
+                <a href="p5_generation.html" class="active">한</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- Project header -->
+<header class="project-hero">
+    <div class="project-hero-inner">
+        <div class="project-breadcrumb">
+            <span>P5</span> &middot; <span>Generative AI</span>
+        </div>
+        <h1>Text-to-Fashion 이미지 생성</h1>
+        <p class="project-hero-tagline">
+            Stable Diffusion v1.5를 FashionGen 데이터셋으로 LoRA 파인튜닝해,<br>
+            텍스트 프롬프트로 패션 상품 이미지를 생성하고 파인튜닝 효과를 FID·CLIP으로 정량 검증했다.
+        </p>
+        <div class="project-metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">59.6</div>
+                <div class="metric-label">FID (파인튜닝 후, rank4)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">&minus;16%</div>
+                <div class="metric-label">FID 개선 (72.4 → 59.6)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">rank 4</div>
+                <div class="metric-label">rank 4·8 비교 → 4로 충분</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">49,148</div>
+                <div class="metric-label">학습 이미지 (상위10·dedup)</div>
+            </div>
+        </div>
+        <div class="tag-group">
+            <span class="tag">PyTorch</span>
+            <span class="tag">Stable Diffusion</span>
+            <span class="tag">LoRA</span>
+            <span class="tag">diffusers</span>
+            <span class="tag">FID · CLIP</span>
+            <span class="tag">Gradio</span>
+            <span class="tag">HuggingFace Spaces</span>
+        </div>
+    </div>
+</header>
+
+<!-- Summary -->
+<section class="project-section project-summary">
+    <h2>Summary</h2>
+    <ul class="summary-list">
+        <li><strong>도메인 파인튜닝 : </strong> 범용 Stable Diffusion v1.5를 FashionGen으로 <strong>LoRA 파인튜닝</strong>해, 패션 전문 텍스트를 상품 이미지로 생성.</li>
+        <li><strong>비교 실험 : </strong> 파인튜닝 <strong>전 vs 후</strong>로 도메인 효과를 입증하고, <strong>LoRA rank 4 vs 8</strong>로 품질-비용 트레이드오프를 분석.</li>
+        <li><strong>정량 평가 & 배포 : </strong> 실제 캡션 1,000개로 생성해 <strong>FID 72.4 → 59.6 개선</strong>을 확인하고, 결과를 Gradio + HuggingFace Spaces 데모로 배포.</li>
+    </ul>
+</section>
+
+<!-- Live Demo -->
+<section class="project-section project-insight">
+    <h2>라이브 데모</h2>
+    <iframe
+        src="https://yeonjung77-p5-text-to-fashion.hf.space"
+        title="P5 Text-to-Fashion Generation Demo"
+        width="100%" height="900"
+        frameborder="0" loading="lazy"
+        allow="clipboard-read; clipboard-write"
+        style="border:1px solid #e5e7eb; border-radius:12px; margin-top:1rem;">
+    </iframe>
+    <p class="muted" style="margin-top:0.75rem;">데모가 보이지 않으면
+        <a class="open-tab-link" href="https://yeonjung77-p5-text-to-fashion.hf.space" target="_blank" rel="noopener">새 탭에서 열기<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
+    </p>
+    <p class="muted" style="font-size:0.86rem;">
+        ※ 무료 CPU 환경에서는 Diffusion 생성이 너무 느리기 때문에, 사전 생성 결과를 전시하는 방식으로 데모를 구성했다.
+    </p>
+</section>
+
+<!-- Problem -->
+<section class="project-section">
+    <h2>문제 정의</h2>
+    <p>
+        범용 Stable Diffusion은 "자카드", "맨더린 칼라" 같은 <strong>패션 전문 용어와 상품컷 스타일</strong>을 잘 표현하지 못한다.
+        모델을 처음부터 학습하는 것은 비현실적이므로, 기성 SD에 <strong>LoRA 어댑터만 얹어 패션 도메인에 적응</strong>시키고
+        그 효과를 정량적으로 검증하는 것을 목표로 삼았다.
+    </p>
+
+    <h3>⚠️ 프로젝트에서 마주한 어려움</h3>
+    <p class="muted">검증된 라이브러리를 쓰더라도, 실제로 돌려 비교·배포하는 과정에서 여러 실무 이슈를 디버깅해야 했다.</p>
+    <table class="result-table">
+        <thead><tr><th>어려움</th><th>구체적 상황 / 해결</th></tr></thead>
+        <tbody>
+            <tr><td>라이브러리 버전 충돌</td><td>최신 transformers(5.x)·numpy(2.x)·setuptools(82)가 torch 2.1과 충돌 → 호환 버전으로 고정</td></tr>
+            <tr><td>정밀도(dtype) 충돌</td><td>학습 중 검증 생성에서 LoRA(fp32)+베이스(fp16) 혼합으로 크래시 → autocast로 감싸 해결</td></tr>
+            <tr><td>평가 프로토콜</td><td>FID는 소수 이미지로는 무의미 → 실제 캡션 1,000개로 대량 생성해 분포 비교</td></tr>
+            <tr><td>데이터 해상도 한계</td><td>보유 데이터가 256px → SD 네이티브 512로 업스케일, 한계는 정직하게 문서화</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Data & Method -->
+<section class="project-section">
+    <h2>데이터 &amp; 방법</h2>
+    <table class="result-table">
+        <tbody>
+            <tr><td>데이터셋</td><td>FashionGen — 불균형(2,972배)·중복을 정리해 <strong>상위 10개 카테고리 + 상품당 1장 dedup → 49,148장</strong> (256→512 업스케일)</td></tr>
+            <tr><td>캡션</td><td><code>input_description</code> 그대로 사용 (CLIP 77토큰 초과 10%뿐 → 자동 truncation)</td></tr>
+            <tr><td>모델</td><td>Stable Diffusion v1.5 + <strong>LoRA</strong> (U-Net attention, VAE·Text Encoder·U-Net 본체는 frozen)</td></tr>
+            <tr><td>학습</td><td>ε-prediction MSE · AdamW 1e-4 · 15,000 step · fp16 · 단일 GPU (diffusers 적응)</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Evaluation -->
+<section class="project-section">
+    <h2>평가 방법</h2>
+    <p>실제 패션 분포와 같은 조건에서 비교하기 위해, validation 캡션 1,000개로 이미지를 생성한 뒤 두 지표로 평가했다.</p>
+    <table class="result-table">
+        <thead><tr><th>지표</th><th>의미</th><th>방향</th></tr></thead>
+        <tbody>
+            <tr><td>FID</td><td>생성 이미지와 실제 패션 사진의 분포 차이</td><td>낮을수록 ↓ (실제에 가까움)</td></tr>
+            <tr><td>CLIP Score</td><td>생성 이미지와 텍스트 프롬프트의 일치도</td><td>높을수록 ↑</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Results -->
+<section class="project-section">
+    <h2>결과</h2>
+    <table class="result-table">
+        <thead><tr><th>모델</th><th>FID ↓</th><th>CLIP ↑</th></tr></thead>
+        <tbody>
+            <tr><td>base (파인튜닝 전)</td><td>72.37</td><td>0.2911</td></tr>
+            <tr class="row-highlight"><td><strong>LoRA rank 4</strong></td><td><strong>59.59</strong></td><td>0.2807</td></tr>
+            <tr><td>LoRA rank 8</td><td>60.99</td><td>0.2815</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">파인튜닝으로 FID가 72.4 → 59.6으로 <strong>약 16% 낮아져</strong>, 생성 결과가 실제 패션 이미지 분포에 더 가까워졌다. rank를 8로 키워도 거의 동일(오히려 미세 악화)해 <strong>rank 4로 충분(포화)</strong>함을 확인했다.</p>
+</section>
+
+<!-- Insight -->
+<section class="project-section project-insight">
+    <h2>인사이트</h2>
+
+    <h3>1. 도메인 특화 효과 — 스타일 일관성</h3>
+    <p>
+        파인튜닝 전 base는 야외·라이프스타일 등 구도가 제각각인 반면, LoRA는 <strong>단색 배경 + 정면 + 모델 중앙 배치의 패션 상품컷 스타일</strong>로 일관되게 생성했다.
+        정성적 변화(상품컷 스타일)와 정량적 개선(FID&darr;)이 일치해, 도메인 적응이 실제로 작동했음을 확인했다.
+    </p>
+
+    <h3>2. LoRA rank에 따른 성능 포화</h3>
+    <p>
+        LoRA rank를 4 → 8로 2배 키워도 FID·CLIP이 거의 동일했다. 즉 <strong>rank 4에서 이미 성능이 포화</strong>되어, 용량을 늘릴 실익이 없었다.
+        과도한 용량을 가정하기보다 <strong>필요한 최소 용량을 실험으로 규명</strong>했다.
+    </p>
+
+    <h3>3. 정직한 한계</h3>
+    <p class="muted">
+        절대 FID(~60)는 목표(≤30)에 못 미쳤다. 원인은 데이터가 256px 업스케일이라 디테일에 한계가 있고, 평가 캡션이 치수·소재코드가 섞인 거친 실상품 설명이기 때문이다.
+        억지로 우회하지 않고 원인과 함께 한계로 남기고, 고해상도 데이터·캡션 정제를 향후 과제로 두었다.
+    </p>
+</section>
+
+<!-- Engineering -->
+<section class="project-section">
+    <h2>엔지니어링 노트</h2>
+    <ul class="engineering-list">
+        <li><strong>재현 가능한 파이프라인 : </strong> 데이터 전처리(H5 → imagefolder) → LoRA 학습(diffusers 적응) → 대량 생성 → FID·CLIP 평가 → 데모까지 end-to-end로 구성하고, 단계마다 검증 기준을 두었다.</li>
+        <li><strong>실무 트러블슈팅 : </strong> 버전 충돌(transformers/numpy/setuptools), 학습 중 dtype 크래시(autocast), FID 대량생성 프로토콜, 대용량 바이너리 배포(HF API 업로드) 등을 진단·해결했다.</li>
+    </ul>
+</section>
+
+<br>
+
+<footer id="contact" class="footer">
+    <div class="section-gray-inner">
+        <h2 class="footer-title">Contact</h2>
+        <p class="footer-message">Fashion AI, Computer Vision, ML Engineering 분야의 커리어 기회를 찾고 있습니다.</p>
+        <div class="hero-links">
+            <a href="https://github.com/yeonjung77" target="_blank">GitHub</a>
+            <a href="https://linkedin.com/yeonjung77" target="_blank">LinkedIn</a>
+            <a href="mailto:yeonjung.ai@gmail.com">Email</a>
+        </div>
+        <p class="footer-note">&copy; 2026 원연정 &middot; Built with HTML/CSS/JS &middot; Hosted on GitHub Pages</p>
+    </div>
+</footer>
+
+</body>
+</html>
