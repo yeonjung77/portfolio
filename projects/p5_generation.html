@@ -94,89 +94,145 @@
     </ul>
 </section>
 
-<!-- Demo (static interactive showcase) -->
+<!-- Demo (허깅페이스 Space 데모를 정적으로 그대로 재현) -->
 <section class="project-section project-insight">
-    <h2>인터랙티브 데모 <span class="muted" style="font-size:0.8rem;">(사전 생성 결과 · 직접 선택·비교)</span></h2>
-    <p class="muted" style="font-size:0.86rem;">
-        ※ 무료 환경에선 Diffusion 실시간 생성이 너무 느려, <strong>미리 생성한 결과</strong>를 골라보는 방식으로 구성했다. 아래에서 직접 선택·비교할 수 있다.
-    </p>
+    <h2>데모</h2>
+    <p class="muted" style="font-size:.8rem; color:#9ca3af;">※ 사전 생성된 결과입니다.</p>
 
-    <!-- A. Base vs LoRA -->
-    <h3 style="margin-top:1.5rem;">① Base SD vs LoRA 파인튜닝</h3>
-    <label style="display:block; margin:.5rem 0;">프롬프트 선택:
-        <select id="p5-ba-sel" style="padding:.4rem; border-radius:8px; border:1px solid #d1d5db; max-width:100%;"></select>
-    </label>
-    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-        <figure style="flex:1; min-width:240px; margin:0;">
-            <img id="p5-ba-base" alt="Base SD" style="width:100%; border-radius:10px; border:1px solid #e5e7eb;">
-            <figcaption class="muted" style="text-align:center;">Base SD · CLIP <b id="p5-ba-bc"></b></figcaption>
-        </figure>
-        <figure style="flex:1; min-width:240px; margin:0;">
-            <img id="p5-ba-lora" alt="LoRA" style="width:100%; border-radius:10px; border:1px solid #e5e7eb;">
-            <figcaption class="muted" style="text-align:center;">+LoRA(파인튜닝) · CLIP <b id="p5-ba-lc"></b></figcaption>
-        </figure>
+    <div class="p5demo">
+      <div class="p5tabs">
+        <button class="p5tab is-on" data-t="1">1) 파인튜닝 전 / 후 비교</button>
+        <button class="p5tab" data-t="2">2) 카테고리별 생성 결과</button>
+        <button class="p5tab" data-t="3">3) LoRA 강도</button>
+      </div>
+
+      <div class="p5panel" data-p="1">
+        <div class="p5desc"><span class="ic">ℹ</span> 동일한 프롬프트를 <b>파인튜닝 전(base Stable Diffusion)</b>과 <b>후(LoRA)</b> 모델로 생성한 결과입니다.<br>※ 막대 그래프 = CLIP 점수(생성 이미지와 텍스트 프롬프트의 일치도)</div>
+        <div id="p5-ba"></div>
+      </div>
+
+      <div class="p5panel" data-p="2" hidden>
+        <div class="p5desc"><span class="ic">ℹ</span> 카테고리별 프롬프트를 사용해 생성한 이미지입니다.</div>
+        <div id="p5-cat" class="p5cat-grid"></div>
+      </div>
+
+      <div class="p5panel" data-p="3" hidden>
+        <div class="p5desc"><span class="ic">ℹ</span> <b>LoRA 강도(scale)</b>는 학습으로 익힌 패션 스타일을 생성에 얼마나 강하게 반영할지를 뜻합니다.<br>0~1 사이 값이며, <b>0이면 파인튜닝 전 base Stable Diffusion과 같고, 1로 갈수록 FashionGen 스타일이 강하게 반영</b>됩니다.</div>
+        <div id="p5-scale"></div>
+      </div>
     </div>
 
-    <!-- B. LoRA scale -->
-    <h3 style="margin-top:2rem;">② LoRA 강도 조절</h3>
-    <p class="muted" style="font-size:.86rem;">프롬프트: "A beige boucle tweed jacket with gold buttons"</p>
-    <input type="range" id="p5-scale" min="0" max="4" step="1" value="2" style="width:100%; max-width:420px;">
-    <div class="muted">강도(scale): <b id="p5-scale-v">0.5</b></div>
-    <img id="p5-scale-img" alt="LoRA scale" style="width:100%; max-width:360px; border-radius:10px; border:1px solid #e5e7eb; margin-top:.5rem;">
-
-    <!-- C. Category -->
-    <h3 style="margin-top:2rem;">③ 카테고리별 생성 예시</h3>
-    <label style="display:block; margin:.5rem 0;">카테고리:
-        <select id="p5-cat-sel" style="padding:.4rem; border-radius:8px; border:1px solid #d1d5db;"></select>
-    </label>
-    <p class="muted" id="p5-cat-prompt" style="font-size:.86rem;"></p>
-    <img id="p5-cat-img" alt="category sample" style="width:100%; max-width:360px; border-radius:10px; border:1px solid #e5e7eb;">
+    <style>
+    .p5demo{max-width:900px;margin:14px 0 4px}
+    .p5tabs{display:flex;gap:4px;background:#f4f5fa;border:1px solid #e6e8f0;border-radius:12px;padding:5px}
+    .p5tab{flex:1;border:none;border-radius:9px;padding:9px 14px;font-weight:600;color:#6b7180;background:transparent;cursor:pointer;font-size:.92rem}
+    .p5tab.is-on{background:#4f46e5;color:#fff;box-shadow:0 1px 4px rgba(79,70,229,.35)}
+    .p5panel{padding-top:16px}
+    .p5desc{background:#f6f7fb;border:1px solid #e9ebf2;border-left:3px solid #a5b4fc;border-radius:10px;
+            padding:11px 15px;margin:4px 0 16px;color:#4b5160;font-size:.92rem;line-height:1.65}
+    .p5desc .ic{font-weight:800;color:#4f46e5;margin-right:6px}
+    .p5desc b{color:#1f2430}
+    /* 탭1 전/후 카드 */
+    .p5ba-card{border:1px solid #ececf1;border-radius:16px;padding:18px 20px 20px;margin:16px 0;background:#fff;box-shadow:0 1px 3px rgba(20,20,40,.05)}
+    .p5prompt{display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:14px;background:#f6f7fb;border:1px solid #e6e8f0;border-radius:10px}
+    .p5prompt .tag{font-size:.7rem;font-weight:800;letter-spacing:.06em;color:#4f46e5;background:#eef0ff;padding:3px 8px;border-radius:6px}
+    .p5prompt .txt{font-size:1rem;color:#1f2430}
+    .p5ba-imgs{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:760px;margin:0 auto}
+    .p5ba-imgs figure{margin:0}
+    .p5ba-imgs img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;display:block}
+    .p5ba-imgs figcaption{text-align:center;font-size:.82rem;font-weight:600;color:#6b7180;margin-top:7px}
+    .p5ba-imgs figcaption.lora{color:#4f46e5}
+    .p5clip-row{display:flex;gap:22px;margin-top:14px}
+    .p5clip{flex:1;display:flex;align-items:center;gap:9px;font-size:.82rem;color:#6b7180}
+    .p5clip .nm{width:38px;font-weight:700}
+    .p5clip .track{flex:1;height:8px;background:#eef0f4;border-radius:5px;overflow:hidden}
+    .p5clip .fill{height:100%;border-radius:5px}
+    .p5clip .v{width:46px;text-align:right;font-variant-numeric:tabular-nums;color:#1f2430;font-weight:600}
+    /* 탭2 카테고리 그리드 */
+    .p5cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:6px}
+    .p5cat-card{border:1px solid #ececf1;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(20,20,40,.05)}
+    .p5cat-card img{width:100%;height:200px;object-fit:cover;display:block}
+    .p5cat-card .body{padding:11px 13px 14px}
+    .p5cat-card .nm{font-size:1.02rem;font-weight:800;color:#1f2430}
+    .p5cat-card .pr{font-size:.84rem;color:#8a8f9c;margin-top:3px;line-height:1.35}
+    /* 탭3 스케일 */
+    .p5sc-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+    .p5sc-row figure{margin:0}
+    .p5sc-row img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;display:block}
+    .p5sc-row figcaption{text-align:center;font-size:.82rem;font-weight:700;color:#4f46e5;margin-top:6px}
+    .p5sc-barwrap{position:relative;height:26px;margin:14px 4px 2px}
+    .p5sc-bar{position:absolute;top:9px;left:0;right:0;height:9px;border-radius:5px;background:linear-gradient(90deg,#d1d5db 0%,#a5b4fc 55%,#4f46e5 100%)}
+    .p5sc-dot{position:absolute;top:5px;width:17px;height:17px;border-radius:50%;background:#fff;border:3px solid #4f46e5;transform:translateX(-50%)}
+    .p5sc-ends{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;color:#6b7180;margin-top:4px}
+    @media(max-width:560px){.p5sc-row{grid-template-columns:repeat(5,1fr);gap:5px}.p5sc-row figcaption{font-size:.66rem}}
+    </style>
 
     <script>
     (function(){
       const base = "../assets/img/projects/p5";
+      // 탭1: 파인튜닝 전/후 (색 충실도 약했던 프롬프트 2개 제외 → idx 0·2·3·5)
       const BA = [
-        {p:"A red floral midi dress with V-neck", bc:0.342, lc:0.343},
-        {p:"A black mock neck ribbed sweater", bc:0.325, lc:0.300},
-        {p:"An A-line houndstooth wool skirt", bc:0.335, lc:0.323},
-        {p:"A beige boucle tweed jacket with gold buttons", bc:0.351, lc:0.317},
-        {p:"A navy peplum blouse with puff sleeves", bc:0.321, lc:0.324},
-        {p:"White leather low-top sneakers", bc:0.314, lc:0.322}
+        {i:0, p:"A red floral midi dress with V-neck",          cb:0.3419, cl:0.3427},
+        {i:2, p:"An A-line houndstooth wool skirt",             cb:0.3354, cl:0.3226},
+        {i:3, p:"A beige boucle tweed jacket with gold buttons",cb:0.3507, cl:0.3167},
+        {i:5, p:"White leather low-top sneakers",               cb:0.3136, cl:0.3215}
       ];
-      const SCALE = ["s000.png","s025.png","s050.png","s075.png","s100.png"];
-      const SCALEV = ["0.0","0.25","0.5","0.75","1.0"];
+      // 탭2: 카테고리
       const CAT = [
-        {n:"DRESSES", p:"A red floral V-neck midi dress", f:"DRESSES.png", c:0.332},
-        {n:"TOPS", p:"A white cotton long sleeve top", f:"TOPS.png", c:0.295},
-        {n:"SWEATERS", p:"A beige cable knit sweater", f:"SWEATERS.png", c:0.302},
-        {n:"SHIRTS", p:"A light blue oxford shirt", f:"SHIRTS.png", c:0.309},
-        {n:"JACKETS & COATS", p:"A navy wool tailored coat", f:"JACKETS_COATS.png", c:0.310},
-        {n:"PANTS", p:"Black tailored trousers", f:"PANTS.png", c:0.297},
-        {n:"JEANS", p:"Blue slim fit denim jeans", f:"JEANS.png", c:0.330},
-        {n:"SHORTS", p:"Beige cotton chino shorts", f:"SHORTS.png", c:0.346},
-        {n:"SNEAKERS", p:"White leather low-top sneakers", f:"SNEAKERS.png", c:0.322},
-        {n:"SHOULDER BAGS", p:"A black leather shoulder bag with gold hardware", f:"SHOULDER_BAGS.png", c:0.326}
+        {n:"TOPS",          p:"A white cotton long sleeve top",                       f:"TOPS.png"},
+        {n:"SWEATERS",      p:"A beige cable knit sweater",                           f:"SWEATERS.png"},
+        {n:"JACKETS & COATS",p:"A navy wool tailored coat",                           f:"JACKETS_COATS.png"},
+        {n:"PANTS",         p:"Black tailored trousers",                              f:"PANTS.png"},
+        {n:"JEANS",         p:"Blue slim fit denim jeans",                            f:"JEANS.png"},
+        {n:"SHIRTS",        p:"A light blue oxford shirt",                            f:"SHIRTS.png"},
+        {n:"SNEAKERS",      p:"White leather low-top sneakers",                       f:"SNEAKERS.png"},
+        {n:"DRESSES",       p:"A red floral V-neck midi dress",                       f:"DRESSES.png"},
+        {n:"SHORTS",        p:"Beige cotton chino shorts",                            f:"SHORTS.png"},
+        {n:"SHOULDER BAGS", p:"A black leather shoulder bag with gold hardware",      f:"SHOULDER_BAGS.png"}
       ];
-      function $(id){return document.getElementById(id);}
-      // ① Base vs LoRA
-      const baSel=$('p5-ba-sel');
-      BA.forEach((o,i)=>{const op=document.createElement('option');op.value=i;op.textContent=o.p;baSel.appendChild(op);});
-      function showBA(i){const o=BA[i], nn=String(i).padStart(2,'0');
-        $('p5-ba-base').src=`${base}/before_after/${nn}_base.png`;
-        $('p5-ba-lora').src=`${base}/before_after/${nn}_lora.png`;
-        $('p5-ba-bc').textContent=o.bc.toFixed(3); $('p5-ba-lc').textContent=o.lc.toFixed(3);}
-      baSel.addEventListener('change',e=>showBA(+e.target.value)); showBA(0);
-      // ② LoRA scale
-      const sc=$('p5-scale');
-      function showSc(i){$('p5-scale-img').src=`${base}/scale/${SCALE[i]}`; $('p5-scale-v').textContent=SCALEV[i];}
-      sc.addEventListener('input',e=>showSc(+e.target.value)); showSc(2);
-      // ③ Category
-      const catSel=$('p5-cat-sel');
-      CAT.forEach((o,i)=>{const op=document.createElement('option');op.value=i;op.textContent=o.n;catSel.appendChild(op);});
-      function showCat(i){const o=CAT[i];
-        $('p5-cat-img').src=`${base}/category/${o.f}`;
-        $('p5-cat-prompt').textContent=`"${o.p}"  ·  CLIP ${o.c.toFixed(3)}`;}
-      catSel.addEventListener('change',e=>showCat(+e.target.value)); showCat(0);
+      // 탭3: LoRA 강도
+      const SCALE_PROMPT = "A beige boucle tweed jacket with gold buttons";
+      const SCALE = [{s:"0.0",f:"s000.png"},{s:"0.25",f:"s025.png"},{s:"0.5",f:"s050.png"},{s:"0.75",f:"s075.png"},{s:"1.0",f:"s100.png"}];
+
+      const clipW = v => Math.round(Math.min(Math.max((v||0)/0.40,0),1)*100*10)/10;
+
+      // 탭1 빌드
+      document.getElementById('p5-ba').innerHTML = BA.map(x=>{
+        const nn=String(x.i).padStart(2,'0');
+        return `<div class="p5ba-card">
+          <div class="p5prompt"><span class="tag">PROMPT</span><span class="txt">${x.p}</span></div>
+          <div class="p5ba-imgs">
+            <figure><img loading="lazy" src="${base}/before_after/${nn}_base.png" alt="base"><figcaption>Base · Stable Diffusion</figcaption></figure>
+            <figure><img loading="lazy" src="${base}/before_after/${nn}_lora.png" alt="lora"><figcaption class="lora">LoRA · 파인튜닝</figcaption></figure>
+          </div>
+          <div class="p5clip-row">
+            <div class="p5clip"><span class="nm">Base</span><div class="track"><div class="fill" style="width:${clipW(x.cb)}%;background:#b9bec9"></div></div><span class="v">${x.cb.toFixed(4)}</span></div>
+            <div class="p5clip"><span class="nm">LoRA</span><div class="track"><div class="fill" style="width:${clipW(x.cl)}%;background:#4f46e5"></div></div><span class="v">${x.cl.toFixed(4)}</span></div>
+          </div>
+        </div>`;
+      }).join('');
+
+      // 탭2 빌드
+      document.getElementById('p5-cat').innerHTML = CAT.map(c=>
+        `<div class="p5cat-card"><img loading="lazy" src="${base}/category/${c.f}" alt="${c.n}">
+          <div class="body"><div class="nm">${c.n}</div><div class="pr">${c.p}</div></div></div>`
+      ).join('');
+
+      // 탭3 빌드
+      const figs = SCALE.map(it=>`<figure><img loading="lazy" src="${base}/scale/${it.f}" alt="scale ${it.s}"><figcaption>${it.s}</figcaption></figure>`).join('');
+      const dots = SCALE.map((_,idx)=>`<div class="p5sc-dot" style="left:${((idx+0.5)/SCALE.length*100).toFixed(1)}%"></div>`).join('');
+      document.getElementById('p5-scale').innerHTML =
+        `<div class="p5prompt" style="margin-bottom:16px"><span class="tag">PROMPT</span><span class="txt">${SCALE_PROMPT}</span></div>
+         <div class="p5sc-row">${figs}</div>
+         <div class="p5sc-barwrap"><div class="p5sc-bar"></div>${dots}</div>
+         <div class="p5sc-ends"><span>약함 · base (0)</span><span>강함 · LoRA (1)</span></div>`;
+
+      // 탭 전환
+      const tabs=[...document.querySelectorAll('.p5tab')], panels=[...document.querySelectorAll('.p5panel')];
+      tabs.forEach(t=>t.addEventListener('click',()=>{
+        tabs.forEach(x=>x.classList.toggle('is-on', x===t));
+        const k=t.dataset.t; panels.forEach(p=>p.hidden=(p.dataset.p!==k));
+      }));
     })();
     </script>
 </section>

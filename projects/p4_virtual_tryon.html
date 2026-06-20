@@ -93,21 +93,123 @@
     </ul>
 </section>
 
-<!-- Demo (static result showcase) -->
+<!-- Demo (허깅페이스 Space 데모를 정적으로 그대로 재현) -->
 <section class="project-section project-insight">
-    <h2>데모 <span class="muted" style="font-size:0.8rem; font-weight:400;">(사전 생성 결과 비교)</span></h2>
-    <p>같은 입력(① 인물 사진 → ② 의류 영역 제거 → ③ 합성할 의류)에 대해 <strong>두 가상피팅 모델(StableVITON · IDM-VTON)의 결과</strong>를 나란히 비교한다.</p>
-    <figure style="margin:1.25rem 0;">
-        <img src="../assets/img/projects/p4/compare_unpaired.png" alt="교차 피팅(unpaired) 비교: 사람 · 옷 · StableVITON · IDM-VTON" style="width:100%; border-radius:12px; border:1px solid #e5e7eb;">
-        <figcaption class="muted" style="text-align:center; margin-top:0.4rem;">교차 피팅(unpaired) — 원래 입지 않았던 옷을 입혀 보는, 실제 사용 시나리오</figcaption>
-    </figure>
-    <figure style="margin:1.25rem 0;">
-        <img src="../assets/img/projects/p4/compare_paired.png" alt="원본 재구성(paired) 비교: 원본 · StableVITON · IDM-VTON" style="width:100%; border-radius:12px; border:1px solid #e5e7eb;">
-        <figcaption class="muted" style="text-align:center; margin-top:0.4rem;">원본 재구성(paired) — 원래 입고 있던 옷을 그대로 복원해 정답과 직접 비교</figcaption>
-    </figure>
-    <p class="muted" style="font-size:0.86rem;">
-        ※ 두 모델은 라이브러리(torch) 버전이 서로 달라 한 서버에서 동시에 실행할 수 없고, 무료 CPU 환경에서는 Diffusion 추론이 너무 느려 사실상 불가능했기 때문에 미리 생성해 둔 결과를 비교 전시하는 방식으로 데모를 구성했다.
-    </p>
+    <h2>데모</h2>
+    <div class="p4note">
+      <span class="p4note-ic">ℹ</span>
+      <div class="p4note-body">
+        <p><strong>썸네일을 클릭</strong>해 샘플을 고르고, <strong>모드</strong>를 바꿔 두 모델 결과를 비교할 수 있습니다.</p>
+        <p>StableVITON과 IDM-VTON은 요구하는 torch 버전이 상이하여 단일 서버에서 동시 추론이 불가능하며, 무료 CPU 환경에서는 Diffusion 추론 비용이 과도하다. 이에 본 데모는 사전 생성한 벤치마크 결과를 비교 전시하는 방식으로 구성했습니다.</p>
+      </div>
+    </div>
+
+    <div class="p4demo">
+      <div class="p4block">
+        <div class="p4label">Samples <small>(썸네일을 클릭해 선택)</small></div>
+        <div class="p4gal" id="p4gal"></div>
+      </div>
+
+      <div class="p4block">
+        <div class="p4moderow">
+          <span class="p4modelabel">모드 선택</span>
+          <button class="p4mode is-on" data-m="unpair" title="인물이 입고 있던 의류를 제거한 자리에 다른 의류를 합성합니다. 정답 이미지가 없으므로 결과가 실제 사진처럼 자연스러운지를 FID로 평가합니다.">교차 피팅 (Unpaired)</button>
+          <button class="p4mode" data-m="pair" title="의류를 제거한 자리에 원래 입고 있던 의류를 다시 합성해 원본을 복원합니다. 위의 인물 사진이 곧 정답이며, 복원 정확도를 SSIM·LPIPS로 평가합니다.">원본 재구성 (Paired)</button>
+        </div>
+        <div class="p4cmptitle p4cmptitle-sub">결과 비교</div>
+        <div class="p4cmp" id="p4cmp"></div>
+      </div>
+
+      <div class="p4block">
+        <div class="p4cmptitle">모델 성능 비교</div>
+        <table class="p4scoretab">
+          <tr><th>모델</th><th>해상도</th><th style="color:#15803d">SSIM↑</th><th style="color:#b45309">LPIPS↓</th><th style="color:#4338ca">FID↓</th></tr>
+          <tr><td><b>StableVITON</b></td><td>512×384</td><td>0.7975</td><td>0.1966</td><td>15.63</td></tr>
+          <tr><td><b>IDM-VTON</b></td><td>768×1024</td><td class="win">0.8847 👑</td><td class="win">0.0792 👑</td><td class="win">9.25 👑</td></tr>
+        </table>
+        <p class="muted" style="font-size:.86rem;margin-top:8px"><b>측정</b> · VITON-HD 테스트 2,032쌍 실측값 · <b>결과</b> 세 지표 모두 <b>IDM-VTON 우세</b> 👑</p>
+      </div>
+    </div>
+
+    <style>
+    .p4demo{max-width:1000px;margin:14px 0 4px}
+    /* 설명 안내 박스 */
+    .p4note{display:flex;gap:11px;background:#f1f2fb;border:1px solid #e2e4f3;border-left:4px solid #4f46e5;
+            border-radius:11px;padding:13px 16px;margin:8px 0 22px;max-width:1000px}
+    .p4note-ic{color:#4f46e5;font-weight:800;font-size:1.05rem;line-height:1.55;flex:0 0 auto}
+    .p4note-body p{margin:0 0 7px;color:#4b5160;font-size:.9rem;line-height:1.65}
+    .p4note-body p:last-child{margin-bottom:0}
+    .p4note-body strong{color:#1f2430}
+    /* 각 구역 카드 */
+    .p4block{background:#fff;border:1px solid #e9e9ef;border-radius:14px;padding:16px 18px;
+             margin-bottom:16px;box-shadow:0 1px 2px rgba(20,20,40,.04)}
+    .p4block .p4label,.p4block .p4cmptitle{margin:0 0 11px;border-left:3px solid #4f46e5;padding-left:9px}
+    .p4label{font-weight:700;font-size:1.05rem}
+    .p4label small{font-size:.82rem;font-weight:400;color:#8a8f9c}
+    .p4gal{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;margin-bottom:0}
+    .p4gal img{width:100%;height:84px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent;display:block}
+    .p4gal img.is-sel{border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,.35)}
+    @media(max-width:760px){.p4gal{grid-template-columns:repeat(8,1fr)}.p4gal img{height:64px}}
+    @media(max-width:480px){.p4gal{grid-template-columns:repeat(6,1fr)}.p4gal img{height:54px}}
+    .p4moderow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px}
+    .p4modelabel{font-size:1.05rem;font-weight:700}
+    .p4mode{border:1px solid #d7d9e3;background:#fff;border-radius:9px;padding:7px 14px;font-weight:600;color:#4b5160;cursor:help;font-size:.9rem}
+    .p4mode.is-on{background:#4f46e5;color:#fff;border-color:#4f46e5}
+    .p4cmptitle{font-size:1.05rem;font-weight:700;margin:16px 0 6px}
+    /* 비교 영역 (원본 flexbox 그대로) */
+    .p4cmp{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;overflow-x:auto;margin:2px 0 4px;padding-bottom:4px}
+    .p4cmp .box{border-radius:14px;padding:10px 14px 14px}
+    .p4cmp .inbox{background:rgba(59,130,246,.06);border:1.5px solid rgba(59,130,246,.38)}
+    .p4cmp .outbox{background:rgba(168,85,247,.07);border:1.5px solid rgba(168,85,247,.42)}
+    .p4cmp .boxtitle{text-align:center;font-weight:700;font-size:.98rem;margin-bottom:8px}
+    .p4cmp .imgs{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap}
+    .p4cmp figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+    .p4cmp figcaption{font-size:.84rem;font-weight:600;white-space:nowrap;color:#1f2430}
+    .p4cmp img{width:120px !important;height:160px !important;max-width:120px !important;object-fit:contain;border-radius:8px !important;background:#fafafa;border:1px solid rgba(0,0,0,.05) !important;flex:0 0 auto}
+    .p4cmp figure figcaption{white-space:nowrap;font-size:.82rem;color:#1f2430;margin-top:6px}
+    .p4cmp .op{font-size:1.4rem;color:#9aa0aa;line-height:1;margin-top:22px;flex:0 0 auto}
+    .p4cmp .op.big{font-size:2rem;font-weight:800;color:#6366f1;margin:0 2px}
+    @media(max-width:680px){.p4cmp img{width:74px !important;height:99px !important;max-width:74px !important}.p4cmp figcaption{font-size:.68rem}.p4cmp .box{padding:8px 8px 10px}}
+    /* 점수표 */
+    .p4scoretab{border-collapse:collapse;width:100%;font-size:.9rem;margin:4px 0}
+    .p4scoretab th,.p4scoretab td{border:1px solid #e5e7eb;padding:7px 10px;text-align:center}
+    .p4scoretab th{background:#f6f7fb;font-weight:700}
+    .p4scoretab td.win{background:rgba(67,56,202,.12);font-weight:700}
+    </style>
+
+    <script>
+    (function(){
+      const base="../assets/img/projects/p4/samples";
+      const PIDS=["00006_00","00008_00","00013_00","00017_00","00034_00","00035_00","00055_00","00057_00","00064_00","00067_00","00069_00","00071_00","00074_00","00075_00","00084_00","00094_00","00095_00","00096_00","00110_00","00112_00","00121_00","00126_00","00127_00","00135_00"];
+      let pid="00135_00", mode="unpair";
+
+      const gal=document.getElementById('p4gal');
+      gal.innerHTML=PIDS.map(p=>`<img loading="lazy" data-pid="${p}" src="${base}/${p}/person.jpg" alt="${p}">`).join('');
+      const thumbs=[...gal.querySelectorAll('img')];
+
+      function fig(src,cap){return `<figure><img loading="lazy" src="${src}" alt=""><figcaption>${cap}</figcaption></figure>`;}
+      function render(){
+        const d=`${base}/${pid}`;
+        const isU=mode==="unpair";
+        const garment=isU?"garment_other.jpg":"garment_self.jpg";
+        const sv=isU?"sv_unpair.jpg":"sv_pair.jpg";
+        const idm=isU?"idm_unpair.jpg":"idm_pair.jpg";
+        const pcap=isU?"① 인물 사진":"① 인물 사진 (정답)";
+        const gcap=isU?"③ 합성할 의류":"③ 합성할 의류 (원래 의류)";
+        const inb=fig(`${d}/person.jpg`,pcap)+'<div class="op">→</div>'+fig(`${d}/agnostic.jpg`,"② 의류 영역 제거")+'<div class="op">＋</div>'+fig(`${d}/${garment}`,gcap);
+        const out=fig(`${d}/${sv}`,"StableVITON")+fig(`${d}/${idm}`,"IDM-VTON 👑");
+        document.getElementById('p4cmp').innerHTML=
+          `<div class="box inbox"><div class="boxtitle">입력</div><div class="imgs">${inb}</div></div>
+           <div class="op big">⟹</div>
+           <div class="box outbox"><div class="boxtitle">모델 결과</div><div class="imgs">${out}</div></div>`;
+        thumbs.forEach(t=>t.classList.toggle('is-sel',t.dataset.pid===pid));
+      }
+      thumbs.forEach(t=>t.addEventListener('click',()=>{pid=t.dataset.pid;render();}));
+      const modeBtns=[...document.querySelectorAll('.p4mode')];
+      modeBtns.forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.m;modeBtns.forEach(x=>x.classList.toggle('is-on',x===b));render();}));
+      render();
+    })();
+    </script>
 </section>
 
 <!-- Problem -->
