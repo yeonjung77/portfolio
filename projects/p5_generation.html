@@ -94,23 +94,91 @@
     </ul>
 </section>
 
-<!-- Live Demo -->
+<!-- Demo (static interactive showcase) -->
 <section class="project-section project-insight">
-    <h2>라이브 데모</h2>
-    <iframe
-        src="https://yeonjung77-p5-text-to-fashion.hf.space"
-        title="P5 Text-to-Fashion Generation Demo"
-        width="100%" height="900"
-        frameborder="0" loading="lazy"
-        allow="clipboard-read; clipboard-write"
-        style="border:1px solid #e5e7eb; border-radius:12px; margin-top:1rem;">
-    </iframe>
-    <p class="muted" style="margin-top:0.75rem;">데모가 보이지 않으면
-        <a class="open-tab-link" href="https://yeonjung77-p5-text-to-fashion.hf.space" target="_blank" rel="noopener">새 탭에서 열기<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
-    </p>
+    <h2>인터랙티브 데모 <span class="muted" style="font-size:0.8rem;">(사전 생성 결과 · 직접 선택·비교)</span></h2>
     <p class="muted" style="font-size:0.86rem;">
-        ※ 무료 CPU 환경에서는 Diffusion 생성이 너무 느리기 때문에, 사전 생성 결과를 전시하는 방식으로 데모를 구성했다.
+        ※ 무료 환경에선 Diffusion 실시간 생성이 너무 느려, <strong>미리 생성한 결과</strong>를 골라보는 방식으로 구성했다. 아래에서 직접 선택·비교할 수 있다.
     </p>
+
+    <!-- A. Base vs LoRA -->
+    <h3 style="margin-top:1.5rem;">① Base SD vs LoRA 파인튜닝</h3>
+    <label style="display:block; margin:.5rem 0;">프롬프트 선택:
+        <select id="p5-ba-sel" style="padding:.4rem; border-radius:8px; border:1px solid #d1d5db; max-width:100%;"></select>
+    </label>
+    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <figure style="flex:1; min-width:240px; margin:0;">
+            <img id="p5-ba-base" alt="Base SD" style="width:100%; border-radius:10px; border:1px solid #e5e7eb;">
+            <figcaption class="muted" style="text-align:center;">Base SD · CLIP <b id="p5-ba-bc"></b></figcaption>
+        </figure>
+        <figure style="flex:1; min-width:240px; margin:0;">
+            <img id="p5-ba-lora" alt="LoRA" style="width:100%; border-radius:10px; border:1px solid #e5e7eb;">
+            <figcaption class="muted" style="text-align:center;">+LoRA(파인튜닝) · CLIP <b id="p5-ba-lc"></b></figcaption>
+        </figure>
+    </div>
+
+    <!-- B. LoRA scale -->
+    <h3 style="margin-top:2rem;">② LoRA 강도 조절</h3>
+    <p class="muted" style="font-size:.86rem;">프롬프트: "A beige boucle tweed jacket with gold buttons"</p>
+    <input type="range" id="p5-scale" min="0" max="4" step="1" value="2" style="width:100%; max-width:420px;">
+    <div class="muted">강도(scale): <b id="p5-scale-v">0.5</b></div>
+    <img id="p5-scale-img" alt="LoRA scale" style="width:100%; max-width:360px; border-radius:10px; border:1px solid #e5e7eb; margin-top:.5rem;">
+
+    <!-- C. Category -->
+    <h3 style="margin-top:2rem;">③ 카테고리별 생성 예시</h3>
+    <label style="display:block; margin:.5rem 0;">카테고리:
+        <select id="p5-cat-sel" style="padding:.4rem; border-radius:8px; border:1px solid #d1d5db;"></select>
+    </label>
+    <p class="muted" id="p5-cat-prompt" style="font-size:.86rem;"></p>
+    <img id="p5-cat-img" alt="category sample" style="width:100%; max-width:360px; border-radius:10px; border:1px solid #e5e7eb;">
+
+    <script>
+    (function(){
+      const base = "../assets/img/projects/p5";
+      const BA = [
+        {p:"A red floral midi dress with V-neck", bc:0.342, lc:0.343},
+        {p:"A black mock neck ribbed sweater", bc:0.325, lc:0.300},
+        {p:"An A-line houndstooth wool skirt", bc:0.335, lc:0.323},
+        {p:"A beige boucle tweed jacket with gold buttons", bc:0.351, lc:0.317},
+        {p:"A navy peplum blouse with puff sleeves", bc:0.321, lc:0.324},
+        {p:"White leather low-top sneakers", bc:0.314, lc:0.322}
+      ];
+      const SCALE = ["s000.png","s025.png","s050.png","s075.png","s100.png"];
+      const SCALEV = ["0.0","0.25","0.5","0.75","1.0"];
+      const CAT = [
+        {n:"DRESSES", p:"A red floral V-neck midi dress", f:"DRESSES.png", c:0.332},
+        {n:"TOPS", p:"A white cotton long sleeve top", f:"TOPS.png", c:0.295},
+        {n:"SWEATERS", p:"A beige cable knit sweater", f:"SWEATERS.png", c:0.302},
+        {n:"SHIRTS", p:"A light blue oxford shirt", f:"SHIRTS.png", c:0.309},
+        {n:"JACKETS & COATS", p:"A navy wool tailored coat", f:"JACKETS_COATS.png", c:0.310},
+        {n:"PANTS", p:"Black tailored trousers", f:"PANTS.png", c:0.297},
+        {n:"JEANS", p:"Blue slim fit denim jeans", f:"JEANS.png", c:0.330},
+        {n:"SHORTS", p:"Beige cotton chino shorts", f:"SHORTS.png", c:0.346},
+        {n:"SNEAKERS", p:"White leather low-top sneakers", f:"SNEAKERS.png", c:0.322},
+        {n:"SHOULDER BAGS", p:"A black leather shoulder bag with gold hardware", f:"SHOULDER_BAGS.png", c:0.326}
+      ];
+      function $(id){return document.getElementById(id);}
+      // ① Base vs LoRA
+      const baSel=$('p5-ba-sel');
+      BA.forEach((o,i)=>{const op=document.createElement('option');op.value=i;op.textContent=o.p;baSel.appendChild(op);});
+      function showBA(i){const o=BA[i], nn=String(i).padStart(2,'0');
+        $('p5-ba-base').src=`${base}/before_after/${nn}_base.png`;
+        $('p5-ba-lora').src=`${base}/before_after/${nn}_lora.png`;
+        $('p5-ba-bc').textContent=o.bc.toFixed(3); $('p5-ba-lc').textContent=o.lc.toFixed(3);}
+      baSel.addEventListener('change',e=>showBA(+e.target.value)); showBA(0);
+      // ② LoRA scale
+      const sc=$('p5-scale');
+      function showSc(i){$('p5-scale-img').src=`${base}/scale/${SCALE[i]}`; $('p5-scale-v').textContent=SCALEV[i];}
+      sc.addEventListener('input',e=>showSc(+e.target.value)); showSc(2);
+      // ③ Category
+      const catSel=$('p5-cat-sel');
+      CAT.forEach((o,i)=>{const op=document.createElement('option');op.value=i;op.textContent=o.n;catSel.appendChild(op);});
+      function showCat(i){const o=CAT[i];
+        $('p5-cat-img').src=`${base}/category/${o.f}`;
+        $('p5-cat-prompt').textContent=`"${o.p}"  ·  CLIP ${o.c.toFixed(3)}`;}
+      catSel.addEventListener('change',e=>showCat(+e.target.value)); showCat(0);
+    })();
+    </script>
 </section>
 
 <!-- Problem -->

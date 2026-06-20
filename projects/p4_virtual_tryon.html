@@ -93,21 +93,18 @@
     </ul>
 </section>
 
-<!-- Live Demo -->
+<!-- Demo (static result showcase) -->
 <section class="project-section project-insight">
-    <h2>라이브 데모</h2>
-    <p>샘플(인물)을 고르면 <strong>입력(① 인물 사진 → ② 의류 영역 제거 → ③ 합성할 의류) → 두 모델 결과</strong>를 보여준다. (사전 생성 결과 비교 방식)</p>
-    <iframe
-        src="https://yeonjung77-p4-virtual-tryon.hf.space"
-        title="P4 Virtual Try-On Benchmark Demo"
-        width="100%" height="900"
-        frameborder="0" loading="lazy"
-        allow="clipboard-read; clipboard-write"
-        style="border:1px solid #e5e7eb; border-radius:12px; margin-top:1rem;">
-    </iframe>
-    <p class="muted" style="margin-top:0.75rem;">데모가 보이지 않으면
-        <a class="open-tab-link" href="https://yeonjung77-p4-virtual-tryon.hf.space" target="_blank" rel="noopener">새 탭에서 열기<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a>
-    </p>
+    <h2>데모 <span class="muted" style="font-size:0.8rem; font-weight:400;">(사전 생성 결과 비교)</span></h2>
+    <p>같은 입력(① 인물 사진 → ② 의류 영역 제거 → ③ 합성할 의류)에 대해 <strong>두 가상피팅 모델(StableVITON · IDM-VTON)의 결과</strong>를 나란히 비교한다.</p>
+    <figure style="margin:1.25rem 0;">
+        <img src="../assets/img/projects/p4/compare_unpaired.png" alt="교차 피팅(unpaired) 비교: 사람 · 옷 · StableVITON · IDM-VTON" style="width:100%; border-radius:12px; border:1px solid #e5e7eb;">
+        <figcaption class="muted" style="text-align:center; margin-top:0.4rem;">교차 피팅(unpaired) — 원래 입지 않았던 옷을 입혀 보는, 실제 사용 시나리오</figcaption>
+    </figure>
+    <figure style="margin:1.25rem 0;">
+        <img src="../assets/img/projects/p4/compare_paired.png" alt="원본 재구성(paired) 비교: 원본 · StableVITON · IDM-VTON" style="width:100%; border-radius:12px; border:1px solid #e5e7eb;">
+        <figcaption class="muted" style="text-align:center; margin-top:0.4rem;">원본 재구성(paired) — 원래 입고 있던 옷을 그대로 복원해 정답과 직접 비교</figcaption>
+    </figure>
     <p class="muted" style="font-size:0.86rem;">
         ※ 두 모델은 라이브러리(torch) 버전이 서로 달라 한 서버에서 동시에 실행할 수 없고, 무료 CPU 환경에서는 Diffusion 추론이 너무 느려 사실상 불가능했기 때문에 미리 생성해 둔 결과를 비교 전시하는 방식으로 데모를 구성했다.
     </p>
@@ -191,14 +188,7 @@
             <tr class="row-highlight"><td><strong>IDM-VTON</strong></td><td><strong>0.8847</strong></td><td><strong>0.0792</strong></td><td><strong>9.25</strong></td></tr>
         </tbody>
     </table>
-    <p class="muted">IDM-VTON이 세 지표 모두에서 더 높은 성능을 기록했다 (SSIM +0.087, LPIPS &minus;0.117, FID &minus;6.39). 복원 충실도(SSIM·LPIPS)와 생성 사실성(FID) 양쪽에서 일관되게 앞섰다.</p>
-
-    <figure>
-        <img src="../assets/img/projects/p4/compare_unpaired.png" alt="교차 피팅(unpaired) 비교">
-    </figure>
-    <figure style="margin-top:2rem;">
-        <img src="../assets/img/projects/p4/compare_paired.png" alt="원본 재구성(paired) 비교">
-    </figure>
+    <p class="muted">IDM-VTON이 세 지표 모두에서 더 높은 성능을 기록했다 (SSIM +0.087, LPIPS &minus;0.117, FID &minus;6.39). 복원 충실도(SSIM·LPIPS)와 생성 사실성(FID) 양쪽에서 일관되게 앞섰다. (정성 비교는 위 <strong>데모</strong> 참고)</p>
 </section>
 
 <!-- Insight -->
